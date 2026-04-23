@@ -1,0 +1,33 @@
+{
+  "baseToken": "appxxxxxxxxxxxxxxxx",
+  "merchantTableId": "tblMerchantExample",
+  "opsTableId": "tblOpsExample",
+  "merchantRecordsPath": "./merchant-records.json",
+  "opsRecordsPath": "./ops-records.json",
+  "merchantTasks": [
+    {
+      "module": "商品管理",
+      "priority": "P0",
+      "parent": "recParentMerchant001",
+      "task": "列表筛选参数接入",
+      "status": "待开始",
+      "remark": "补齐筛选项、查询参数和分页请求",
+      "hours": 2,
+      "stage": "开发",
+      "review": "待评审"
+    }
+  ],
+  "opsTasks": [
+    {
+      "module": "价格规则",
+      "priority": "P0",
+      "parent": "recParentOps001",
+      "task": "规则列表渲染",
+      "status": "待开始",
+      "remark": "完成列表、筛选和分页展示",
+      "hours": 2,
+      "stage": "开发",
+      "review": "待评审"
+    }
+  ]
+}

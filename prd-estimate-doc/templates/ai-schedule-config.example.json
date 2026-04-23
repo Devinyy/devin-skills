@@ -1,0 +1,21 @@
+{
+  "baseToken": "appxxxxxxxxxxxxxxxx",
+  "merchantTableId": "tblMerchantExample",
+  "opsTableId": "tblOpsExample",
+  "summaryTableId": "tblSummaryExample",
+  "wave1Serial": [
+    "店铺上下文接入",
+    "店铺切换逻辑接入"
+  ],
+  "wave1Parallel": [
+    "商品列表渲染",
+    "规则列表渲染",
+    "详情基础展示"
+  ],
+  "wave3Serial": [
+    "提交参数组装",
+    "编辑页回显初始化",
+    "对象选择器结果回填",
+    "菜单显隐与路由校验"
+  ]
+}
