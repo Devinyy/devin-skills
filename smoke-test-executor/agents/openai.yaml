@@ -1,0 +1,6 @@
+interface:
+  display_name: "冒烟用例执行"
+  short_description: "按冒烟用例执行 UI 与接口校验流程"
+  default_prompt: "Use $smoke-test-executor to execute smoke test cases from a checklist and report UI/API verification results."
+policy:
+  allow_implicit_invocation: true

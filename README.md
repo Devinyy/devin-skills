@@ -3,6 +3,7 @@
 这个仓库用于存放可复用的 Devin / Codex skill，目前已收录：
 
 - `prd-estimate-doc`
+- `smoke-test-executor`
 
 ## 当前包含的 skill
 
@@ -27,21 +28,49 @@
 - [prd-estimate-doc/README.md](prd-estimate-doc/README.md)
 - [prd-estimate-doc/SKILL.md](prd-estimate-doc/SKILL.md)
 
+### `smoke-test-executor`
+
+用于把冒烟用例清单、Excel 工作簿、PRD 或人工示例转换成可执行验证流程，默认覆盖：
+
+- 冒烟用例抽取与筛选
+- UI 点击链执行
+- API 辅助数据准备和落库校验
+- 失败归因与继续执行策略
+- 中文冒烟测试报告
+
+适用场景：
+
+- 测试前，需要从用例表中筛选 P0 或冒烟标签用例
+- 需要在真实登录态下验证核心业务流程
+- 需要结合网络请求、接口查询和 UI 状态定位问题
+- 需要输出包含执行方式、关键校验、记录 ID 和问题分类的报告
+
+详情见：
+
+- [smoke-test-executor/README.md](smoke-test-executor/README.md)
+- [smoke-test-executor/SKILL.md](smoke-test-executor/SKILL.md)
+
 ## 仓库结构
 
 ```text
 devin-skills/
 ├── LICENSE
 ├── README.md
-└── prd-estimate-doc/
-    ├── CHANGELOG.md
+├── prd-estimate-doc/
+│   ├── CHANGELOG.md
+│   ├── README.md
+│   ├── RELEASE-NOTES.md
+│   ├── SKILL.md
+│   ├── agents/
+│   ├── references/
+│   ├── scripts/
+│   └── templates/
+└── smoke-test-executor/
     ├── README.md
-    ├── RELEASE-NOTES.md
     ├── SKILL.md
     ├── agents/
     ├── references/
-    ├── scripts/
-    └── templates/
+    └── scripts/
 ```
 
 ## 安装
@@ -49,7 +78,8 @@ devin-skills/
 如果你只想安装其中一个 skill，可以把对应目录复制到本地：
 
 ```text
-~/.agents/skills/prd-estimate-doc
+~/.codex/skills/<skill-name>
+~/.agents/skills/<skill-name>
 ```
 
 ## 快速开始
@@ -59,6 +89,9 @@ devin-skills/
 - “用 `prd-estimate-doc` 根据这个 PRD 出估时文档”
 - “按 `prd-estimate-doc` 把这份 PRD 同步成 Base 估时表”
 - “按 `prd-estimate-doc` 给我一版 AI 协同开发口径估时”
+- “用 `smoke-test-executor` 跑这份 Excel 里的 P0 冒烟用例”
+- “按 `smoke-test-executor` 设计这份 PRD 的冒烟测试清单”
+- “用 `smoke-test-executor` 验证新增流程，UI 操作为主，接口校验落库”
 
 ## 发布说明
 
@@ -66,3 +99,5 @@ devin-skills/
 
 - [prd-estimate-doc/RELEASE-NOTES.md](prd-estimate-doc/RELEASE-NOTES.md)
 - [prd-estimate-doc/CHANGELOG.md](prd-estimate-doc/CHANGELOG.md)
+
+`smoke-test-executor` 当前以 README、SKILL 说明和脚本为准，分发前确认不包含真实账号、token、环境配置或业务数据。
