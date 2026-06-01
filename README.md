@@ -82,6 +82,21 @@ devin-skills/
 ~/.agents/skills/<skill-name>
 ```
 
+## 同步到 cc-switch
+
+如果用 [cc-switch](https://github.com/farion1231/cc-switch) 统一管理 skill，可以用仓库自带的脚本把本仓库的 skill 同步进去：
+
+```bash
+./sync-to-cc-switch.sh                  # 同步全部 skill
+./sync-to-cc-switch.sh <skill-name> ... # 只同步指定 skill
+```
+
+脚本行为：
+
+- 自动发现仓库内含 `SKILL.md` 的目录，`rsync` 到 `~/.cc-switch/skills/<name>`（只补不删，排除 `.DS_Store`/`.git`）
+- 新 skill：在 `cc-switch.db` 写入 `local:<name>` 记录（默认对 claude/codex 启用），并在 `~/.claude/skills`、`~/.codex/skills` 建软链；写库前自动备份 DB
+- 已存在的 skill：仅刷新文件，不动 DB（`content_hash` 由 cc-switch app 启动时自查重算）
+
 ## 快速开始
 
 典型触发方式：
