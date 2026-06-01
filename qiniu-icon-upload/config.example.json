@@ -1,0 +1,21 @@
+{
+  "access_key": "YOUR_QINIU_ACCESS_KEY",
+  "secret_key": "YOUR_QINIU_SECRET_KEY",
+  "bucket": "YOUR_BUCKET_NAME",
+  "domain": "https://static.dachuguanjia.cn",
+  "use_https": true,
+
+  "up_host": "https://up-z0.qiniup.com",
+  "rs_host": "https://rs.qiniuapi.com",
+
+  "base_prefix": "images",
+  "common_folder": "common",
+  "common_prefixes": ["common_", "common-", "ic_common_", "icon_common_"],
+  "common_keywords": [
+    "common", "back", "arrow", "close", "delete", "add", "minus", "plus",
+    "check", "checked", "uncheck", "selected", "search", "clear", "location",
+    "share", "more", "star", "heart", "like", "scan", "edit", "setting",
+    "loading", "empty", "success", "fail", "warning", "tip", "dropdown",
+    "up", "down", "left", "right", "logo", "default", "avatar", "placeholder"
+  ]
+}

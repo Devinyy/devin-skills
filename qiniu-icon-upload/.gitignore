@@ -1,0 +1,9 @@
+# secrets — never commit
+config.local.json
+*.local.json
+
+# scratch
+.DS_Store
+__pycache__/
+*.pyc
+/tmp-icons/
