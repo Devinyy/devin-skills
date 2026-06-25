@@ -81,7 +81,7 @@ outputs/{task_id}/
 └── assets/
 ```
 
-The title-based Markdown filename is derived from the first `# ` heading in the generated summary, for example `字节跳动技术副总裁洪定坤：AI Coding 的实践与探索.md`. If a local Obsidian vault is detected, the same title-based note is also copied into the vault under `Video Knowledge/` by default. Set `OBSIDIAN_VAULT_PATH` to choose a vault, `OBSIDIAN_OUTPUT_DIR` to choose the subdirectory, or pass `--no-obsidian` to skip export.
+The title-based Markdown filename is derived from the first `# ` heading in the generated summary, for example `字节跳动技术副总裁洪定坤：AI Coding 的实践与探索.md`. If a local Obsidian vault is detected, the same title-based note is copied into an automatically selected category folder at the vault root by default, such as `研发/` or `管理/`. Set `OBSIDIAN_VAULT_PATH` to choose a vault, `OBSIDIAN_OUTPUT_DIR` to place category folders under a subdirectory, `OBSIDIAN_CATEGORY` to force a category, or pass `--no-obsidian` to skip export.
 
 ## Final Response Contract
 

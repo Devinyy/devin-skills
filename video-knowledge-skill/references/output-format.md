@@ -51,9 +51,9 @@ When answering the user after a successful summarization, include the absolute `
 
 ## Obsidian export
 
-When a local Obsidian installation is detected, `summary.md` is copied into the selected vault under `Video Knowledge/` by default. Detection order:
+When a local Obsidian installation is detected, `summary.md` is copied into an automatically selected category folder at the vault root by default, such as `研发/标题.md` or `管理/标题.md`. Detection order:
 
 1. `OBSIDIAN_VAULT_PATH`, if set and valid.
 2. The open or most recent vault in `~/Library/Application Support/obsidian/obsidian.json`.
 
-Use `OBSIDIAN_OUTPUT_DIR` to change the vault subdirectory, or `--no-obsidian` to disable export for a run. When export succeeds, `metadata.json` includes `obsidian_path`. Metadata also includes `summary_path` and `summary_named_path`.
+Use `OBSIDIAN_OUTPUT_DIR` to place category folders under a chosen vault subdirectory, `OBSIDIAN_CATEGORY` to force one category for a run, or `--no-obsidian` to disable export. When export succeeds, `metadata.json` includes `obsidian_path` and `obsidian_category`. Metadata also includes `summary_path` and `summary_named_path`.
