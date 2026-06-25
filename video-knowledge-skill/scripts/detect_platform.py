@@ -42,6 +42,8 @@ def detect(value: str) -> dict:
                 return {"platform": platform, "input": probe, "confidence": 0.95}
     if host_matches(host, "weixin.qq.com") and path.startswith("/sph"):
         return {"platform": "wechat_channels", "input": probe, "confidence": 0.95}
+    if parsed.scheme in {"http", "https"} and host:
+        return {"platform": "generic_article", "input": probe, "confidence": 0.7}
 
     return {"platform": "unknown", "input": value, "confidence": 0.2}
 

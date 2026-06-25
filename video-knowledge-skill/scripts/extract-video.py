@@ -17,7 +17,7 @@ from extractors.local_file import LocalFileExtractor
 def get_extractor(platform: str):
     if platform == "local_file":
         return LocalFileExtractor()
-    if platform in {"bilibili", "douyin", "xiaohongshu", "wechat_article", "wechat_channels"}:
+    if platform in {"bilibili", "douyin", "xiaohongshu", "wechat_article", "wechat_channels", "generic_article"}:
         module = importlib.import_module(f"extractors.{platform}")
         return module.Extractor()
     raise ValueError(f"Unsupported or unknown platform: {platform}")

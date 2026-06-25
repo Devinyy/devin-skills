@@ -10,6 +10,7 @@
 | Xiaohongshu | Yes | Yes | Yes | Note text | Yes | yt-dlp works for tested links; note description is also saved as `article.md`. |
 | WeChat article | Yes | Best-effort embedded media | If media exists | Article body | Yes | Article-only links still produce `article.md` and `summary.md`. |
 | WeChat Channels / 视频号 | Yes | Best-effort only | If media is exposed | Preview text | Yes | Public web preview often exposes only preview text and metadata, not playable media. |
+| Generic article | Yes | No | No | Main text | Yes | Best-effort extraction for public web articles such as cnblogs.com posts. |
 
 ## Platform Details
 
@@ -49,8 +50,14 @@
 - Local fallback: manually exported video or screen recording.
 - Reliability: medium for preview text, low for direct media.
 
+### Generic Article
+
+- Preferred: parse common article containers such as `article`, `main`, `#cnblogs_post_body`, and `.entry-content`.
+- Text capture: title, author, source URL, and main body become `article.md`.
+- Media download: not attempted.
+- Reliability: medium; heavily scripted or login-restricted pages may need a custom extractor or copied article text.
+
 ### Local Files
 
 - Preferred: ffmpeg normalization to 16k mono WAV, then transcription.
 - Reliability: high.
-

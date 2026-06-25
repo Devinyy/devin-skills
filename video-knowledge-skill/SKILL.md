@@ -1,6 +1,6 @@
 ---
 name: video-knowledge-skill
-description: Use when extracting, transcribing, summarizing, or making reusable notes from Bilibili, Douyin, Xiaohongshu, WeChat article, WeChat Channels, local video, or local audio sources.
+description: Use when extracting, transcribing, summarizing, or making reusable notes from Bilibili, Douyin, Xiaohongshu, WeChat article, WeChat Channels, public web articles, local video, or local audio sources.
 ---
 
 # Video Knowledge Skill
@@ -20,6 +20,7 @@ Primary goal:
 - Xiaohongshu note/video links
 - WeChat article links containing embedded video
 - WeChat Channels / 视频号 links or manually exported video files
+- Generic public article links, such as cnblogs.com posts
 - Local video/audio files
 
 ## Reliability Policy
@@ -33,6 +34,7 @@ Different platforms have different anti-crawling and login restrictions. This sk
 | Xiaohongshu | yt-dlp first, note text capture, optional cookies | Medium |
 | WeChat article | article parser first, embedded media best-effort | Medium |
 | WeChat Channels | web preview parser, media best-effort, local upload fallback | Medium-Low |
+| Generic article | HTML article parser, best-effort main text extraction | Medium |
 | Local file | ffmpeg + faster-whisper | High |
 
 ## Intent Routing
@@ -43,6 +45,7 @@ Use this skill when the user asks to:
 - extract subtitles/transcript from a video
 - convert a video into notes
 - extract key points from Bilibili/Douyin/Xiaohongshu/WeChat video links
+- summarize public web articles such as cnblogs.com posts
 - batch process video links
 - save video knowledge into Feishu/Lark
 

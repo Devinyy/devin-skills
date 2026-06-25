@@ -159,8 +159,8 @@ def update_summary_metadata(task: Path, named_path: Path) -> None:
             metadata = {}
     else:
         metadata = {}
-    metadata["summary_path"] = str(task / "summary.md")
-    metadata["summary_named_path"] = str(named_path)
+    metadata["summary_path"] = str((task / "summary.md").resolve())
+    metadata["summary_named_path"] = str(named_path.resolve())
     metadata_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
