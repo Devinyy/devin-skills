@@ -8,6 +8,10 @@ import re
 import shutil
 from pathlib import Path
 
+import requests
+from dotenv import load_dotenv
+from openai import OpenAI
+
 
 DEFAULT_SUBDIR = ""
 CATEGORIES = [
@@ -146,13 +150,7 @@ def write_metadata(task_dir: Path, metadata: dict) -> None:
     (task_dir / "metadata.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def classify_category(task_dir: Path, summary_path: Path) -> str:
-    override = os.getenv("OBSIDIAN_CATEGORY")
-    if override:
-        override = override.strip()
-        if override in CATEGORIES:
-            return override
-
+def category_context(task_dir: Path, summary_path: Path) -> dict:
     metadata = read_metadata(task_dir)
     title = title_from_summary(summary_path) or metadata_title(task_dir) or ""
     try:
@@ -160,13 +158,23 @@ def classify_category(task_dir: Path, summary_path: Path) -> str:
     except OSError:
         summary = ""
     nested_metadata = metadata.get("metadata") if isinstance(metadata.get("metadata"), dict) else {}
+    return {
+        "title": title,
+        "platform": metadata.get("platform") or "",
+        "content_type": nested_metadata.get("content_type") or "",
+        "text_preview": nested_metadata.get("text_preview") or "",
+        "summary": summary,
+    }
+
+
+def rule_classify_category(context: dict) -> tuple[str, str]:
     text = "\n".join(
         [
-            title,
-            metadata.get("platform") or "",
-            nested_metadata.get("content_type") or "",
-            nested_metadata.get("text_preview") or "",
-            summary[:12000],
+            context.get("title") or "",
+            context.get("platform") or "",
+            context.get("content_type") or "",
+            context.get("text_preview") or "",
+            (context.get("summary") or "")[:12000],
         ]
     ).lower()
 
@@ -181,7 +189,140 @@ def classify_category(task_dir: Path, summary_path: Path) -> str:
     # Specific technical folders should win ties over broad catch-all folders.
     priority = {category: index for index, category in enumerate(["Agent", "skill", "harness", "设计", "研发", "管理", "摄影", "阅读", "旅行", "生活", "杂谈"])}
     best = max(CATEGORIES, key=lambda category: (scores[category], -priority.get(category, 99)))
-    return best if scores[best] > 0 else "杂谈"
+    if scores[best] <= 0:
+        return "杂谈", "规则分类未命中明确关键词，回退到杂谈。"
+    return best, f"规则分类命中 {best}，分数 {scores[best]}。"
+
+
+def parse_model_category(raw: str) -> tuple[str, str] | None:
+    text = raw.strip()
+    if not text:
+        return None
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        payload = None
+    if isinstance(payload, dict):
+        category = str(payload.get("category") or "").strip()
+        reason = str(payload.get("reason") or "").strip()
+        if category in CATEGORIES:
+            return category, reason or "模型未提供原因。"
+
+    for category in CATEGORIES:
+        if text == category or text.startswith(category):
+            return category, text
+    return None
+
+
+def model_classify_category(context: dict) -> tuple[str, str] | None:
+    load_dotenv()
+    if os.getenv("OBSIDIAN_CLASSIFIER", "model").lower() == "rules":
+        return None
+    if not os.getenv("OPENAI_API_KEY"):
+        return None
+
+    categories = "、".join(CATEGORIES)
+    prompt = (
+        "你是 Obsidian 知识库分类助手。请只从给定分类中选择一个最合适的分类。\n"
+        f"可选分类：{categories}\n\n"
+        "分类含义：\n"
+        "- 管理：团队管理、组织协作、流程治理、绩效、CodeReview 文化等。\n"
+        "- 研发：软件工程、架构、开发、DevOps、CI/CD、监控、测试、工程实践等。\n"
+        "- Agent：AI Agent、Coding Agent、智能体、工具调用、自主执行等。\n"
+        "- skill：Codex/Claude/Agent 技能、可复用技能包、技能编写与安装等。\n"
+        "- harness：评测、验证基建、上下文工程、可交付性验证、测试集、benchmark 等。\n"
+        "- 生活：健康、消费、家庭、习惯、心理等日常生活。\n"
+        "- 杂谈：无法明确归类或泛泛观点。\n"
+        "- 摄影：拍摄、相机、镜头、修图、影像。\n"
+        "- 阅读：书、书评、读书笔记、文学。\n"
+        "- 旅行：路线、城市、酒店、出行攻略。\n"
+        "- 设计：产品设计、UI/UX、原型、交互、视觉、Figma。\n\n"
+        "如果内容同时涉及多个分类，请选择文章的主主题，而不是出现频率最高的词。\n"
+        "只输出 JSON，格式：{\"category\":\"分类名\",\"reason\":\"一句话说明依据\"}"
+    )
+    content = {
+        "title": context.get("title", ""),
+        "platform": context.get("platform", ""),
+        "content_type": context.get("content_type", ""),
+        "text_preview": (context.get("text_preview", "") or "")[:3000],
+        "summary": (context.get("summary", "") or "")[:12000],
+    }
+    client = OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY"),
+        base_url=os.getenv("OPENAI_BASE_URL") or None,
+    )
+    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    messages = [
+        {"role": "system", "content": prompt},
+        {"role": "user", "content": json.dumps(content, ensure_ascii=False)},
+    ]
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=0,
+        )
+        raw = resp.choices[0].message.content or ""
+    except Exception:
+        raw = classify_with_http_fallback(
+            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url=os.getenv("OPENAI_BASE_URL"),
+            model=model,
+            messages=messages,
+        )
+    return parse_model_category(raw)
+
+
+def classify_with_http_fallback(api_key: str | None, base_url: str | None, model: str, messages: list[dict]) -> str:
+    if not api_key or not base_url:
+        raise RuntimeError("OPENAI_API_KEY and OPENAI_BASE_URL are required for HTTP fallback category classification.")
+
+    endpoint = base_url.rstrip("/")
+    if not endpoint.endswith("/chat/completions"):
+        endpoint = f"{endpoint}/chat/completions"
+
+    resp = requests.post(
+        endpoint,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": model,
+            "messages": messages,
+            "temperature": 0,
+        },
+        timeout=60,
+    )
+    resp.raise_for_status()
+    payload = json.loads(resp.content.decode("utf-8"))
+    return payload["choices"][0]["message"]["content"] or ""
+
+
+def classify_category(task_dir: Path, summary_path: Path) -> tuple[str, str, str]:
+    override = os.getenv("OBSIDIAN_CATEGORY")
+    if override:
+        override = override.strip()
+        if override in CATEGORIES:
+            return override, "env", "通过 OBSIDIAN_CATEGORY 手动指定。"
+
+    context = category_context(task_dir, summary_path)
+    try:
+        model_result = model_classify_category(context)
+    except Exception as exc:
+        model_result = None
+        model_error = f"模型分类失败，回退规则分类：{exc.__class__.__name__}"
+    else:
+        model_error = ""
+
+    if model_result:
+        category, reason = model_result
+        return category, "model", reason
+
+    category, reason = rule_classify_category(context)
+    if model_error:
+        reason = f"{model_error}；{reason}"
+    return category, "rules", reason
 
 
 def unique_path(path: Path) -> Path:
@@ -206,7 +347,7 @@ def export_summary(task_dir: Path, vault: Path | None = None, subdir: str | None
         return None
 
     target_subdir = subdir if subdir is not None else os.getenv("OBSIDIAN_OUTPUT_DIR", DEFAULT_SUBDIR)
-    category = classify_category(task_dir, summary_path)
+    category, category_method, category_reason = classify_category(task_dir, summary_path)
     category_root = target_vault / target_subdir if target_subdir else target_vault
     for item in CATEGORIES:
         (category_root / item).mkdir(parents=True, exist_ok=True)
@@ -219,6 +360,8 @@ def export_summary(task_dir: Path, vault: Path | None = None, subdir: str | None
     shutil.copyfile(summary_path, target_path)
     metadata = read_metadata(task_dir)
     metadata["obsidian_category"] = category
+    metadata["obsidian_category_method"] = category_method
+    metadata["obsidian_category_reason"] = category_reason
     metadata["obsidian_path"] = str(target_path)
     write_metadata(task_dir, metadata)
     return target_path
