@@ -14,6 +14,8 @@ from openai import OpenAI
 
 
 DEFAULT_SUBDIR = ""
+INDEX_DIR = "_索引"
+LINK_SECTION_TITLE = "## Obsidian 关联"
 CATEGORY_TREE = {
     "研发": ["前端", "DevOps", "工程质量", "架构", "SOP"],
     "AI工程": ["Agent", "Skill", "Harness", "AI Coding"],
@@ -394,6 +396,104 @@ def unique_path(path: Path) -> Path:
     raise RuntimeError(f"Cannot find unique Obsidian output path for {path}")
 
 
+def wiki_escape(value: str) -> str:
+    return value.replace("|", " ").replace("[", " ").replace("]", " ").strip()
+
+
+def wikilink(target: str, label: str | None = None) -> str:
+    safe_target = wiki_escape(target)
+    safe_label = wiki_escape(label or "")
+    if safe_label and safe_label != safe_target:
+        return f"[[{safe_target}|{safe_label}]]"
+    return f"[[{safe_target}]]"
+
+
+def relative_wiki_target(path: Path, vault: Path) -> str:
+    try:
+        relative = path.relative_to(vault)
+    except ValueError:
+        relative = path
+    return str(relative.with_suffix(""))
+
+
+def ensure_category_indexes(vault: Path, category_root: Path, category: str) -> tuple[Path, Path]:
+    domain, item = category.split("/", 1)
+    index_root = vault / INDEX_DIR
+    domain_path = index_root / f"{safe_filename(domain, fallback='category')}.md"
+    item_dir = index_root / safe_filename(domain, fallback="category")
+    item_path = item_dir / f"{safe_filename(item, fallback='category')}.md"
+    item_dir.mkdir(parents=True, exist_ok=True)
+
+    if not domain_path.exists():
+        child_links = []
+        for child in CATEGORY_TREE.get(domain, []):
+            child_path = index_root / safe_filename(domain, fallback="category") / f"{safe_filename(child, fallback='category')}.md"
+            child_links.append(f"- {wikilink(relative_wiki_target(child_path, vault), child)}")
+        domain_path.write_text(
+            f"# {domain}\n\n"
+            f"{LINK_SECTION_TITLE}\n\n"
+            + "\n".join(child_links)
+            + "\n",
+            encoding="utf-8",
+        )
+
+    if not item_path.exists():
+        folder_target = relative_wiki_target(category_root / domain / item, vault)
+        item_path.write_text(
+            f"# {item}\n\n"
+            f"{LINK_SECTION_TITLE}\n\n"
+            f"- 上级分类：{wikilink(relative_wiki_target(domain_path, vault), domain)}\n"
+            f"- 分类路径：`{category}`\n"
+            f"- 对应目录：{wikilink(folder_target, category)}\n",
+            encoding="utf-8",
+        )
+
+    return domain_path, item_path
+
+
+def existing_related_notes(target_dir: Path, target_path: Path, limit: int = 5) -> list[Path]:
+    notes = []
+    for path in sorted(target_dir.glob("*.md"), key=lambda item: item.stat().st_mtime, reverse=True):
+        if path == target_path:
+            continue
+        notes.append(path)
+        if len(notes) >= limit:
+            break
+    return notes
+
+
+def add_obsidian_links(
+    note_path: Path,
+    vault: Path,
+    category: str,
+    category_root: Path,
+    category_reason: str,
+    related_notes: list[Path],
+) -> None:
+    domain, item = category.split("/", 1)
+    domain_index, item_index = ensure_category_indexes(vault, category_root, category)
+
+    text = note_path.read_text(encoding="utf-8")
+    if LINK_SECTION_TITLE in text:
+        text = text.split(LINK_SECTION_TITLE, 1)[0].rstrip()
+
+    lines = [
+        "",
+        LINK_SECTION_TITLE,
+        "",
+        f"- 一级分类：{wikilink(relative_wiki_target(domain_index, vault), domain)}",
+        f"- 二级分类：{wikilink(relative_wiki_target(item_index, vault), item)}",
+        f"- 分类依据：{category_reason}",
+    ]
+    if related_notes:
+        lines.append("- 同类笔记：" + " ".join(
+            wikilink(relative_wiki_target(path, vault), path.stem) for path in related_notes
+        ))
+    lines.append("")
+
+    note_path.write_text(text.rstrip() + "\n" + "\n".join(lines), encoding="utf-8")
+
+
 def export_summary(task_dir: Path, vault: Path | None = None, subdir: str | None = None) -> Path | None:
     summary_path = task_dir / "summary.md"
     if not summary_path.exists():
@@ -417,6 +517,15 @@ def export_summary(task_dir: Path, vault: Path | None = None, subdir: str | None
     filename = safe_filename(title, fallback=task_dir.name)
     target_path = unique_path(target_dir / f"{filename}.md")
     shutil.copyfile(summary_path, target_path)
+    related_notes = existing_related_notes(target_dir, target_path)
+    add_obsidian_links(
+        target_path,
+        target_vault,
+        category,
+        category_root,
+        category_reason,
+        related_notes,
+    )
     metadata = read_metadata(task_dir)
     metadata["obsidian_category"] = category
     metadata["obsidian_category_method"] = category_method

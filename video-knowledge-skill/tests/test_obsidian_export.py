@@ -43,7 +43,13 @@ def test_export_summary_copies_to_vault_category(tmp_path):
     exported = export_summary(task, vault=vault)
 
     assert exported == vault / "研发" / "工程质量" / "标题：AI Coding.md"
-    assert exported.read_text(encoding="utf-8") == "# 标题：AI/Coding?\n\n代码质量和软件工程内容"
+    exported_text = exported.read_text(encoding="utf-8")
+    assert exported_text.startswith("# 标题：AI/Coding?\n\n代码质量和软件工程内容")
+    assert "## Obsidian 关联" in exported_text
+    assert "[[_索引/研发|研发]]" in exported_text
+    assert "[[_索引/研发/工程质量|工程质量]]" in exported_text
+    assert (vault / "_索引" / "研发.md").exists()
+    assert (vault / "_索引" / "研发" / "工程质量.md").exists()
     metadata = json.loads((task / "metadata.json").read_text(encoding="utf-8"))
     assert metadata["obsidian_category"] == "研发/工程质量"
     assert metadata["obsidian_category_method"] == "rules"
