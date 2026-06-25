@@ -19,6 +19,8 @@ python scripts/batch-extract.py inputs.txt --output outputs --transcribe --summa
 
 By default, each successful summarized item is copied into a detected local Obsidian vault under an automatically selected two-level category folder at the vault root and linked to flat topic notes under `主题/`. Use `--no-obsidian` to keep outputs only under `outputs/`.
 
+Each generated `summary.md` and title-based Markdown file includes `## 原链接` with the original URL or local source path.
+
 Resume after interruption:
 
 ```bash

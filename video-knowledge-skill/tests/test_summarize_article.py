@@ -69,7 +69,7 @@ def test_summarize_uses_requested_summary_style(tmp_path):
 
 def test_summarize_writes_title_named_markdown_and_metadata(tmp_path):
     (tmp_path / "article.md").write_text("文章内容", encoding="utf-8")
-    (tmp_path / "metadata.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "metadata.json").write_text('{"source":"https://example.com/article"}', encoding="utf-8")
 
     client = Mock()
     client.chat.completions.create.return_value.choices = [
@@ -86,7 +86,19 @@ def test_summarize_writes_title_named_markdown_and_metadata(tmp_path):
     assert (tmp_path / "summary.md").exists()
     assert named.exists()
     assert named.read_text(encoding="utf-8").startswith("# 字节跳动技术副总裁洪定坤")
+    assert "## 原链接\n\nhttps://example.com/article" in (tmp_path / "summary.md").read_text(encoding="utf-8")
+    assert "## 原链接\n\nhttps://example.com/article" in named.read_text(encoding="utf-8")
 
     metadata = __import__("json").loads((tmp_path / "metadata.json").read_text(encoding="utf-8"))
     assert metadata["summary_path"] == str(tmp_path / "summary.md")
     assert metadata["summary_named_path"] == str(named)
+
+
+def test_source_link_replaces_existing_source_block():
+    markdown = "# 标题\n\n内容\n\n## 原链接\n\nhttps://old.example"
+
+    result = summarize.with_source_link(markdown, "https://new.example")
+
+    assert result.count("## 原链接") == 1
+    assert "https://new.example" in result
+    assert "https://old.example" not in result

@@ -51,16 +51,19 @@ def main() -> None:
 
     if args.transcribe:
         if not result.audio_path:
-            raise RuntimeError("No audio file generated; cannot transcribe.")
-        subprocess.run([
-            sys.executable,
-            str(Path(__file__).with_name("transcribe.py")),
-            result.audio_path,
-            "--output-dir", str(task_dir),
-            "--model-size", args.model_size,
-            "--language", args.language,
-            "--backend", args.transcribe_backend,
-        ], check=True)
+            if not (task_dir / "article.md").exists():
+                raise RuntimeError("No audio file generated; cannot transcribe.")
+            print("No audio file generated; article.md exists, skipping transcription.")
+        else:
+            subprocess.run([
+                sys.executable,
+                str(Path(__file__).with_name("transcribe.py")),
+                result.audio_path,
+                "--output-dir", str(task_dir),
+                "--model-size", args.model_size,
+                "--language", args.language,
+                "--backend", args.transcribe_backend,
+            ], check=True)
 
     if args.summarize:
         subprocess.run([

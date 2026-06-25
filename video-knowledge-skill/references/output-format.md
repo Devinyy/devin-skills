@@ -58,6 +58,8 @@ When a local Obsidian installation is detected, `summary.md` is copied into an a
 
 Use `OBSIDIAN_OUTPUT_DIR` to place category folders under a chosen vault subdirectory, `OBSIDIAN_CATEGORY` to force one category path for a run, `OBSIDIAN_CLASSIFIER=rules` to disable model classification, or `--no-obsidian` to disable export. When export succeeds, `metadata.json` includes `obsidian_path`, `obsidian_category`, `obsidian_category_method`, `obsidian_category_reason`, and `obsidian_related_categories`. Metadata also includes `summary_path` and `summary_named_path`.
 
+Both `summary.md` and the title-based Markdown file include a final `## 原链接` section with the original input URL or local source path. Obsidian exports preserve this source block and append `## Obsidian 关联` after it.
+
 Supported category paths:
 
 - `研发/前端`, `研发/DevOps`, `研发/工程质量`, `研发/架构`, `研发/SOP`

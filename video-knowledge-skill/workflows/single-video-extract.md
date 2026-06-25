@@ -40,6 +40,8 @@ outputs/{task_id}/
 
 Article-only or preview-only links may produce `article.md` and `summary.md` without transcript files.
 
+`summary.md` and `{主标题}.md` include `## 原链接` with the original URL or local source path.
+
 ## User Response
 
 When summarization succeeds, respond with:

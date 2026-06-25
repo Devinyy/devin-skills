@@ -83,6 +83,8 @@ outputs/{task_id}/
 
 The title-based Markdown filename is derived from the first `# ` heading in the generated summary, for example `字节跳动技术副总裁洪定坤：AI Coding 的实践与探索.md`. If a local Obsidian vault is detected, the same title-based note is copied into an automatically selected two-level category folder at the vault root by default, such as `研发/DevOps/` or `AI工程/Agent/`. Category selection uses the configured LLM first and falls back to local rules when the model is unavailable. The Obsidian note also gets an `## Obsidian 关联` section with wiki links to flat topic notes under `主题/`, such as `主题/研发 SOP.md` and `主题/AI工程 Agent.md`; when content crosses domains, related topics are linked in addition to the primary category so Obsidian graph view has visible relationships. Set `OBSIDIAN_VAULT_PATH` to choose a vault, `OBSIDIAN_OUTPUT_DIR` to place category folders under a subdirectory, `OBSIDIAN_CATEGORY` to force a category path, `OBSIDIAN_CLASSIFIER=rules` to skip model classification, or pass `--no-obsidian` to skip export.
 
+Every generated `summary.md` and title-based Markdown file must include a `## 原链接` section containing the original input URL or local source path.
+
 ## Final Response Contract
 
 After a successful extraction with summarization, the agent must return:

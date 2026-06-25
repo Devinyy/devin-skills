@@ -11,6 +11,7 @@ from .browser_utils import capture_browser_page, load_playwright_cookies
 from .base import ExtractResult
 from .yt_dlp_extractor import YtDlpExtractor, _task_id
 from scripts.extract_audio import normalize_audio
+from extractors.generic_article import _clean_text
 
 
 HEADERS = {
@@ -38,7 +39,10 @@ class Extractor(YtDlpExtractor):
             try:
                 return self._extract_with_browser_fallback(source, output_dir)
             except Exception as fallback_exc:
-                raise exc from fallback_exc
+                try:
+                    return self._extract_with_jina_fallback(source, output_dir)
+                except Exception as article_exc:
+                    raise exc from article_exc
 
     def _extract_with_browser_fallback(self, source: str, output_dir: Path) -> ExtractResult:
         aweme = self._fetch_aweme_detail_with_browser(source)
@@ -114,3 +118,57 @@ class Extractor(YtDlpExtractor):
         if not details:
             raise RuntimeError("Douyin browser fallback could not capture aweme detail JSON")
         return details[0]
+
+    def _extract_with_jina_fallback(self, source: str, output_dir: Path) -> ExtractResult:
+        markdown = self._fetch_jina_markdown(source)
+        title = self._title_from_jina_markdown(markdown) or "抖音内容"
+        task_id = _task_id(source)
+        task_dir = output_dir / task_id
+        task_dir.mkdir(parents=True, exist_ok=True)
+
+        article_markdown = self._render_jina_article(title, source, markdown)
+        (task_dir / "article.md").write_text(article_markdown, encoding="utf-8")
+
+        return ExtractResult(
+            platform=self.platform,
+            source=source,
+            task_id=task_id,
+            title=title,
+            author=None,
+            webpage_url=source,
+            audio_path=None,
+            video_path=None,
+            metadata={
+                "content_type": "douyin_page_text",
+                "title": title,
+                "webpage_url": source,
+                "text_preview": markdown[:2000],
+                "extractor": "douyin_jina_reader_fallback",
+                "fallback_reason": "media_download_or_browser_detail_failed",
+            },
+        )
+
+    def _fetch_jina_markdown(self, source: str) -> str:
+        reader_url = f"https://r.jina.ai/http://{source}"
+        resp = requests.get(reader_url, headers=HEADERS, timeout=60)
+        resp.raise_for_status()
+        text = resp.text.strip()
+        if not text:
+            raise RuntimeError("Jina reader returned empty Douyin content")
+        return text
+
+    def _title_from_jina_markdown(self, markdown: str) -> str | None:
+        for line in markdown.splitlines():
+            if line.startswith("Title:"):
+                title = line.removeprefix("Title:").strip()
+                return title or None
+        return None
+
+    def _render_jina_article(self, title: str, source: str, markdown: str) -> str:
+        content = _clean_text(markdown)
+        return (
+            f"# {title}\n\n"
+            f"原文：{source}\n\n"
+            "## 正文\n\n"
+            f"{content}\n"
+        )

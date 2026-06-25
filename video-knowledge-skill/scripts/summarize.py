@@ -117,6 +117,7 @@ PROMPTS = {
 }
 
 PROMPT = DUAL_PROMPT
+SOURCE_SECTION_TITLE = "## 原链接"
 
 
 def safe_filename(value: str, fallback: str) -> str:
@@ -136,7 +137,37 @@ def title_from_markdown(markdown: str) -> str | None:
     return None
 
 
-def write_summary_files(task: Path, summary: str) -> Path:
+def source_url_from_metadata(metadata: dict) -> str | None:
+    candidates = [
+        metadata.get("source"),
+        metadata.get("webpage_url"),
+        metadata.get("url"),
+        metadata.get("original_url"),
+    ]
+    nested = metadata.get("metadata") if isinstance(metadata.get("metadata"), dict) else {}
+    candidates.extend([
+        nested.get("source"),
+        nested.get("webpage_url"),
+        nested.get("url"),
+        nested.get("original_url"),
+    ])
+    for value in candidates:
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def with_source_link(markdown: str, source_url: str | None) -> str:
+    text = markdown.rstrip()
+    if not source_url:
+        return text
+    if SOURCE_SECTION_TITLE in text:
+        text = text.split(SOURCE_SECTION_TITLE, 1)[0].rstrip()
+    return f"{text}\n\n{SOURCE_SECTION_TITLE}\n\n{source_url}\n"
+
+
+def write_summary_files(task: Path, summary: str, metadata: dict | None = None) -> Path:
+    summary = with_source_link(summary, source_url_from_metadata(metadata or {}))
     summary_path = task / "summary.md"
     summary_path.write_text(summary, encoding="utf-8")
 
@@ -213,7 +244,7 @@ def summarize(task_dir: str, summary_style: str = "dual") -> str:
             model=model,
             messages=messages,
         )
-    named_path = write_summary_files(task, summary)
+    named_path = write_summary_files(task, summary, metadata)
     update_summary_metadata(task, named_path)
     return summary
 
