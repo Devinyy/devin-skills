@@ -11,6 +11,7 @@ from .browser_utils import capture_browser_page, load_playwright_cookies
 from .base import ExtractResult
 from .yt_dlp_extractor import YtDlpExtractor, _task_id
 from scripts.extract_audio import normalize_audio
+from scripts.cookie_refresh import refresh_cookies
 from extractors.generic_article import _clean_text
 
 
@@ -36,6 +37,14 @@ class Extractor(YtDlpExtractor):
         try:
             return super().extract(source, output_dir)
         except DownloadError as exc:
+            if self._should_refresh_cookies(exc):
+                refreshed = self._refresh_cookie_file(output_dir)
+                if refreshed:
+                    self.cookie_file = str(refreshed)
+                    try:
+                        return super().extract(source, output_dir)
+                    except DownloadError as retry_exc:
+                        exc = retry_exc
             try:
                 return self._extract_with_browser_fallback(source, output_dir)
             except Exception as fallback_exc:
@@ -43,6 +52,19 @@ class Extractor(YtDlpExtractor):
                     return self._extract_with_jina_fallback(source, output_dir)
                 except Exception as article_exc:
                     raise exc from article_exc
+
+    def _should_refresh_cookies(self, exc: DownloadError) -> bool:
+        if os.getenv("DOUYIN_AUTO_REFRESH_COOKIES", "1").lower() in {"0", "false", "no"}:
+            return False
+        text = str(exc).lower()
+        return "fresh cookies" in text or "cookies are needed" in text
+
+    def _refresh_cookie_file(self, output_dir: Path) -> Path | None:
+        cookie_path = self.cookie_file or os.getenv("DOUYIN_COOKIE_FILE") or str(Path.cwd() / "www.douyin.com_cookies.txt")
+        try:
+            return refresh_cookies("douyin", output=Path(cookie_path).expanduser(), cwd=Path(__file__).resolve().parents[1])
+        except Exception:
+            return None
 
     def _extract_with_browser_fallback(self, source: str, output_dir: Path) -> ExtractResult:
         aweme = self._fetch_aweme_detail_with_browser(source)

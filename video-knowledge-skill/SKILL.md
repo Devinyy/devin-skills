@@ -85,6 +85,8 @@ The title-based Markdown filename is derived from the first `# ` heading in the 
 
 Every generated `summary.md` and title-based Markdown file must include a `## 原链接` section containing the original input URL or local source path.
 
+For Douyin, stale cookies are refreshed automatically only after yt-dlp reports that fresh cookies are needed. The refresh uses `yt-dlp --cookies-from-browser` against the local browser selected by `DOUYIN_COOKIE_BROWSER` and writes to `DOUYIN_COOKIE_FILE` or `www.douyin.com_cookies.txt`, then retries once. It does not automate captcha, SMS, QR login, or verification bypass; the selected browser must already contain a valid logged-in session.
+
 ## Final Response Contract
 
 After a successful extraction with summarization, the agent must return:
