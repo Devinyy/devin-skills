@@ -65,3 +65,28 @@ def test_summarize_uses_requested_summary_style(tmp_path):
     messages = client.chat.completions.create.call_args.kwargs["messages"]
     assert "## B. 可收藏笔记" in messages[0]["content"]
     assert "## A. 忠实摘要" not in messages[0]["content"]
+
+
+def test_summarize_writes_title_named_markdown_and_metadata(tmp_path):
+    (tmp_path / "article.md").write_text("文章内容", encoding="utf-8")
+    (tmp_path / "metadata.json").write_text("{}", encoding="utf-8")
+
+    client = Mock()
+    client.chat.completions.create.return_value.choices = [
+        Mock(message=Mock(content="# 字节跳动技术副总裁洪定坤：AI Coding 的实践与探索\n\n内容"))
+    ]
+
+    with (
+        patch("scripts.summarize.load_dotenv"),
+        patch("scripts.summarize.OpenAI", return_value=client),
+    ):
+        summarize.summarize(str(tmp_path))
+
+    named = tmp_path / "字节跳动技术副总裁洪定坤：AI Coding 的实践与探索.md"
+    assert (tmp_path / "summary.md").exists()
+    assert named.exists()
+    assert named.read_text(encoding="utf-8").startswith("# 字节跳动技术副总裁洪定坤")
+
+    metadata = __import__("json").loads((tmp_path / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["summary_path"] == str(tmp_path / "summary.md")
+    assert metadata["summary_named_path"] == str(named)

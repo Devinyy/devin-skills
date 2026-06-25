@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 
 import requests
@@ -118,6 +119,51 @@ PROMPTS = {
 PROMPT = DUAL_PROMPT
 
 
+def safe_filename(value: str, fallback: str) -> str:
+    name = re.sub(r'[\\/:*?"<>|#^\[\]]+', " ", value).strip()
+    name = re.sub(r"\s+", " ", name)
+    name = name.rstrip(".")
+    if not name:
+        name = fallback
+    return name[:100].strip() or fallback
+
+
+def title_from_markdown(markdown: str) -> str | None:
+    for line in markdown.splitlines():
+        if line.startswith("# "):
+            title = line[2:].strip()
+            return title or None
+    return None
+
+
+def write_summary_files(task: Path, summary: str) -> Path:
+    summary_path = task / "summary.md"
+    summary_path.write_text(summary, encoding="utf-8")
+
+    title = title_from_markdown(summary)
+    if not title:
+        return summary_path
+
+    named_path = task / f"{safe_filename(title, fallback=task.name)}.md"
+    if named_path != summary_path:
+        named_path.write_text(summary, encoding="utf-8")
+    return named_path
+
+
+def update_summary_metadata(task: Path, named_path: Path) -> None:
+    metadata_path = task / "metadata.json"
+    if metadata_path.exists():
+        try:
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            metadata = {}
+    else:
+        metadata = {}
+    metadata["summary_path"] = str(task / "summary.md")
+    metadata["summary_named_path"] = str(named_path)
+    metadata_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def get_prompt(summary_style: str = "dual") -> str:
     try:
         return PROMPTS[summary_style]
@@ -167,7 +213,8 @@ def summarize(task_dir: str, summary_style: str = "dual") -> str:
             model=model,
             messages=messages,
         )
-    (task / "summary.md").write_text(summary, encoding="utf-8")
+    named_path = write_summary_files(task, summary)
+    update_summary_metadata(task, named_path)
     return summary
 
 

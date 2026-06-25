@@ -42,4 +42,4 @@ python scripts/batch-extract.py inputs.txt --output outputs --resume --retry-fai
 
 ## User Response
 
-After the queue finishes, report the queue status, the absolute `summary.md` path, and any Obsidian note path for each successful item. If the user asks for the output content, read and return the full `summary.md` content for the requested item or items.
+After the queue finishes, report the queue status, the absolute `summary.md` path, the title-based Markdown path, and any Obsidian note path for each successful item. If the user asks for the output content, read and return the full `summary.md` content for the requested item or items.

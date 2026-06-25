@@ -82,7 +82,10 @@ def main() -> None:
             )
             obsidian_path = export.stdout.strip()
             if obsidian_path:
-                metadata = result.to_dict()
+                try:
+                    metadata = json.loads((task_dir / "metadata.json").read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    metadata = result.to_dict()
                 metadata["obsidian_path"] = obsidian_path
                 (task_dir / "metadata.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
                 print(json.dumps({"obsidian_path": obsidian_path}, ensure_ascii=False, indent=2))

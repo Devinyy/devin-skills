@@ -34,6 +34,7 @@ outputs/{task_id}/
 ├── transcript.md
 ├── transcript.srt
 ├── summary.md
+├── {主标题}.md
 └── assets/
 ```
 
@@ -44,6 +45,7 @@ Article-only or preview-only links may produce `article.md` and `summary.md` wit
 When summarization succeeds, respond with:
 
 - `summary.md` absolute path.
+- Title-based Markdown path, derived from the first `# ` heading.
 - Obsidian note path, when a local Obsidian vault is detected.
 - The full contents of `summary.md`.
 

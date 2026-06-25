@@ -74,18 +74,20 @@ outputs/{task_id}/
 ├── transcript.json
 ├── transcript.md
 ├── summary.md
+├── {主标题}.md
 └── assets/
 ```
 
-If a local Obsidian vault is detected, `summary.md` is also copied into the vault under `Video Knowledge/` by default. Set `OBSIDIAN_VAULT_PATH` to choose a vault, `OBSIDIAN_OUTPUT_DIR` to choose the subdirectory, or pass `--no-obsidian` to skip export.
+The title-based Markdown filename is derived from the first `# ` heading in the generated summary, for example `字节跳动技术副总裁洪定坤：AI Coding 的实践与探索.md`. If a local Obsidian vault is detected, the same title-based note is also copied into the vault under `Video Knowledge/` by default. Set `OBSIDIAN_VAULT_PATH` to choose a vault, `OBSIDIAN_OUTPUT_DIR` to choose the subdirectory, or pass `--no-obsidian` to skip export.
 
 ## Final Response Contract
 
 After a successful extraction with summarization, the agent must return:
 
 1. The absolute path to `outputs/{task_id}/summary.md`.
-2. The Obsidian note path when export succeeds.
-3. The full Markdown content of `summary.md`.
+2. The title-based Markdown path.
+3. The Obsidian note path when export succeeds.
+4. The full Markdown content of `summary.md`.
 
 Do not only say that the summary was generated. If the user asks for "输出", "结果", "笔记", or similar wording, read `summary.md` from disk and paste its content in the response, with the path above it.
 
