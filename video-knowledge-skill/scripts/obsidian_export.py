@@ -14,7 +14,7 @@ from openai import OpenAI
 
 
 DEFAULT_SUBDIR = ""
-INDEX_DIR = "_索引"
+TOPIC_DIR = "主题"
 LINK_SECTION_TITLE = "## Obsidian 关联"
 CATEGORY_TREE = {
     "研发": ["前端", "DevOps", "工程质量", "架构", "SOP"],
@@ -213,7 +213,7 @@ def category_context(task_dir: Path, summary_path: Path) -> dict:
     }
 
 
-def rule_classify_category(context: dict) -> tuple[str, str]:
+def category_scores(context: dict) -> dict[str, int]:
     text = "\n".join(
         [
             context.get("title") or "",
@@ -231,22 +231,53 @@ def rule_classify_category(context: dict) -> tuple[str, str]:
             count = text.count(normalized)
             if count:
                 scores[category] += count
+    return scores
 
-    # Specific technical folders should win ties over broad catch-all folders.
-    priority = {category: index for index, category in enumerate([
+
+def category_priority() -> dict[str, int]:
+    return {category: index for index, category in enumerate([
         "AI工程/Agent", "AI工程/Skill", "AI工程/Harness", "AI工程/AI Coding",
         "研发/前端", "研发/DevOps", "研发/工程质量", "研发/架构", "研发/SOP",
         "管理/CodeReview", "管理/流程治理", "管理/团队协作",
         "设计/UIUX", "设计/产品设计",
         "生活/摄影", "生活/阅读", "生活/旅行", "生活/杂谈",
     ])}
+
+
+def related_categories_by_rules(context: dict, primary: str, limit: int = 3) -> list[str]:
+    scores = category_scores(context)
+    priority = category_priority()
+    candidates = [
+        category for category in CATEGORIES
+        if category != primary and scores[category] > 0
+    ]
+    candidates.sort(key=lambda category: (scores[category], -priority.get(category, 99)), reverse=True)
+    return candidates[:limit]
+
+
+def rule_classify_category(context: dict) -> tuple[str, str, list[str]]:
+    scores = category_scores(context)
+    # Specific technical folders should win ties over broad catch-all folders.
+    priority = category_priority()
     best = max(CATEGORIES, key=lambda category: (scores[category], -priority.get(category, 99)))
     if scores[best] <= 0:
-        return "生活/杂谈", "规则分类未命中明确关键词，回退到生活/杂谈。"
-    return best, f"规则分类命中 {best}，分数 {scores[best]}。"
+        return "生活/杂谈", "规则分类未命中明确关键词，回退到生活/杂谈。", []
+    related = related_categories_by_rules(context, best)
+    return best, f"规则分类命中 {best}，分数 {scores[best]}。", related
 
 
-def parse_model_category(raw: str) -> tuple[str, str] | None:
+def normalize_related_categories(value: object, primary: str) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    related = []
+    for item in value:
+        category = normalize_category(str(item))
+        if category and category != primary and category not in related:
+            related.append(category)
+    return related[:3]
+
+
+def parse_model_category(raw: str) -> tuple[str, str, list[str]] | None:
     text = raw.strip()
     if not text:
         return None
@@ -258,18 +289,19 @@ def parse_model_category(raw: str) -> tuple[str, str] | None:
         category = normalize_category(str(payload.get("category") or ""))
         reason = str(payload.get("reason") or "").strip()
         if category:
-            return category, reason or "模型未提供原因。"
+            related = normalize_related_categories(payload.get("related_categories"), category)
+            return category, reason or "模型未提供原因。", related
 
     for category in CATEGORIES:
         if text == category or text.startswith(category):
-            return category, text
+            return category, text, []
     normalized = normalize_category(text)
     if normalized:
-        return normalized, text
+        return normalized, text, []
     return None
 
 
-def model_classify_category(context: dict) -> tuple[str, str] | None:
+def model_classify_category(context: dict) -> tuple[str, str, list[str]] | None:
     load_dotenv()
     if os.getenv("OBSIDIAN_CLASSIFIER", "model").lower() == "rules":
         return None
@@ -278,7 +310,8 @@ def model_classify_category(context: dict) -> tuple[str, str] | None:
 
     categories = "\n".join(f"- {domain}/{item}" for domain, items in CATEGORY_TREE.items() for item in items)
     prompt = (
-        "你是 Obsidian 知识库分类助手。请只从给定二级分类中选择一个最合适的路径。\n"
+        "你是 Obsidian 知识库分类助手。请只从给定二级分类中选择一个最合适的主分类路径，"
+        "并选择 0-3 个跨域相关主题。\n"
         f"可选分类路径：\n{categories}\n\n"
         "分类含义：\n"
         "- 研发/前端：前端架构、前端监控、浏览器、React/Vue/JS/TS、前端工程化。\n"
@@ -296,8 +329,8 @@ def model_classify_category(context: dict) -> tuple[str, str] | None:
         "- 设计/产品设计：产品设计、需求、原型、用户体验、流程。\n"
         "- 设计/UIUX：UI、UX、视觉、交互、Figma、组件体验。\n"
         "- 生活/阅读、生活/摄影、生活/旅行、生活/杂谈：个人知识主题。\n\n"
-        "如果内容同时涉及多个分类，请选择文章的主主题，而不是出现频率最高的词。\n"
-        "只输出 JSON，格式：{\"category\":\"一级/二级\",\"reason\":\"一句话说明依据\"}"
+        "如果内容同时涉及多个分类，请把文章最应该存放的位置作为 category，把跨域或次要主题放入 related_categories。\n"
+        "只输出 JSON，格式：{\"category\":\"一级/二级\",\"related_categories\":[\"一级/二级\"],\"reason\":\"一句话说明依据\"}"
     )
     content = {
         "title": context.get("title", ""),
@@ -358,14 +391,14 @@ def classify_with_http_fallback(api_key: str | None, base_url: str | None, model
     return payload["choices"][0]["message"]["content"] or ""
 
 
-def classify_category(task_dir: Path, summary_path: Path) -> tuple[str, str, str]:
+def classify_category(task_dir: Path, summary_path: Path) -> tuple[str, str, str, list[str]]:
     override = os.getenv("OBSIDIAN_CATEGORY")
+    context = category_context(task_dir, summary_path)
     if override:
         normalized = normalize_category(override)
         if normalized:
-            return normalized, "env", "通过 OBSIDIAN_CATEGORY 手动指定。"
+            return normalized, "env", "通过 OBSIDIAN_CATEGORY 手动指定。", related_categories_by_rules(context, normalized)
 
-    context = category_context(task_dir, summary_path)
     try:
         model_result = model_classify_category(context)
     except Exception as exc:
@@ -375,13 +408,15 @@ def classify_category(task_dir: Path, summary_path: Path) -> tuple[str, str, str
         model_error = ""
 
     if model_result:
-        category, reason = model_result
-        return category, "model", reason
+        category, reason, related = model_result
+        if not related:
+            related = related_categories_by_rules(context, category)
+        return category, "model", reason, related
 
-    category, reason = rule_classify_category(context)
+    category, reason, related = rule_classify_category(context)
     if model_error:
         reason = f"{model_error}；{reason}"
-    return category, "rules", reason
+    return category, "rules", reason, related
 
 
 def unique_path(path: Path) -> Path:
@@ -416,39 +451,41 @@ def relative_wiki_target(path: Path, vault: Path) -> str:
     return str(relative.with_suffix(""))
 
 
-def ensure_category_indexes(vault: Path, category_root: Path, category: str) -> tuple[Path, Path]:
+def topic_title(category: str) -> str:
+    return category.replace("/", " ")
+
+
+def topic_path(vault: Path, category: str) -> Path:
+    return vault / TOPIC_DIR / f"{safe_filename(topic_title(category), fallback='topic')}.md"
+
+
+def ensure_topic(vault: Path, category: str) -> Path:
     domain, item = category.split("/", 1)
-    index_root = vault / INDEX_DIR
-    domain_path = index_root / f"{safe_filename(domain, fallback='category')}.md"
-    item_dir = index_root / safe_filename(domain, fallback="category")
-    item_path = item_dir / f"{safe_filename(item, fallback='category')}.md"
-    item_dir.mkdir(parents=True, exist_ok=True)
-
-    if not domain_path.exists():
-        child_links = []
-        for child in CATEGORY_TREE.get(domain, []):
-            child_path = index_root / safe_filename(domain, fallback="category") / f"{safe_filename(child, fallback='category')}.md"
-            child_links.append(f"- {wikilink(relative_wiki_target(child_path, vault), child)}")
-        domain_path.write_text(
-            f"# {domain}\n\n"
-            f"{LINK_SECTION_TITLE}\n\n"
-            + "\n".join(child_links)
-            + "\n",
-            encoding="utf-8",
+    path = topic_path(vault, category)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        siblings = [
+            sibling for sibling in CATEGORY_TREE.get(domain, [])
+            if sibling != item
+        ]
+        sibling_links = " ".join(
+            wikilink(relative_wiki_target(topic_path(vault, f"{domain}/{sibling}"), vault), sibling)
+            for sibling in siblings
         )
-
-    if not item_path.exists():
-        folder_target = relative_wiki_target(category_root / domain / item, vault)
-        item_path.write_text(
-            f"# {item}\n\n"
+        path.write_text(
+            f"# {topic_title(category)}\n\n"
             f"{LINK_SECTION_TITLE}\n\n"
-            f"- 上级分类：{wikilink(relative_wiki_target(domain_path, vault), domain)}\n"
             f"- 分类路径：`{category}`\n"
-            f"- 对应目录：{wikilink(folder_target, category)}\n",
+            f"- 一级领域：{domain}\n"
+            f"- 相邻主题：{sibling_links}\n",
             encoding="utf-8",
         )
+    return path
 
-    return domain_path, item_path
+
+def ensure_all_topics(vault: Path) -> None:
+    for category in CATEGORIES:
+        ensure_topic(vault, category)
 
 
 def existing_related_notes(target_dir: Path, target_path: Path, limit: int = 5) -> list[Path]:
@@ -466,12 +503,13 @@ def add_obsidian_links(
     note_path: Path,
     vault: Path,
     category: str,
-    category_root: Path,
     category_reason: str,
+    related_categories: list[str],
     related_notes: list[Path],
 ) -> None:
-    domain, item = category.split("/", 1)
-    domain_index, item_index = ensure_category_indexes(vault, category_root, category)
+    ensure_all_topics(vault)
+    primary_topic = ensure_topic(vault, category)
+    related_topics = [ensure_topic(vault, item) for item in related_categories]
 
     text = note_path.read_text(encoding="utf-8")
     if LINK_SECTION_TITLE in text:
@@ -481,10 +519,14 @@ def add_obsidian_links(
         "",
         LINK_SECTION_TITLE,
         "",
-        f"- 一级分类：{wikilink(relative_wiki_target(domain_index, vault), domain)}",
-        f"- 二级分类：{wikilink(relative_wiki_target(item_index, vault), item)}",
+        f"- 主主题：{wikilink(relative_wiki_target(primary_topic, vault), topic_title(category))}",
         f"- 分类依据：{category_reason}",
     ]
+    if related_topics:
+        lines.append("- 相关主题：" + " ".join(
+            wikilink(relative_wiki_target(path, vault), topic_title(category))
+            for path, category in zip(related_topics, related_categories)
+        ))
     if related_notes:
         lines.append("- 同类笔记：" + " ".join(
             wikilink(relative_wiki_target(path, vault), path.stem) for path in related_notes
@@ -504,7 +546,7 @@ def export_summary(task_dir: Path, vault: Path | None = None, subdir: str | None
         return None
 
     target_subdir = subdir if subdir is not None else os.getenv("OBSIDIAN_OUTPUT_DIR", DEFAULT_SUBDIR)
-    category, category_method, category_reason = classify_category(task_dir, summary_path)
+    category, category_method, category_reason, related_categories = classify_category(task_dir, summary_path)
     category_parts = category.split("/", 1)
     category_root = target_vault / target_subdir if target_subdir else target_vault
     for domain, items in CATEGORY_TREE.items():
@@ -522,14 +564,15 @@ def export_summary(task_dir: Path, vault: Path | None = None, subdir: str | None
         target_path,
         target_vault,
         category,
-        category_root,
         category_reason,
+        related_categories,
         related_notes,
     )
     metadata = read_metadata(task_dir)
     metadata["obsidian_category"] = category
     metadata["obsidian_category_method"] = category_method
     metadata["obsidian_category_reason"] = category_reason
+    metadata["obsidian_related_categories"] = related_categories
     metadata["obsidian_path"] = str(target_path)
     write_metadata(task_dir, metadata)
     return target_path

@@ -46,13 +46,14 @@ def test_export_summary_copies_to_vault_category(tmp_path):
     exported_text = exported.read_text(encoding="utf-8")
     assert exported_text.startswith("# 标题：AI/Coding?\n\n代码质量和软件工程内容")
     assert "## Obsidian 关联" in exported_text
-    assert "[[_索引/研发|研发]]" in exported_text
-    assert "[[_索引/研发/工程质量|工程质量]]" in exported_text
-    assert (vault / "_索引" / "研发.md").exists()
-    assert (vault / "_索引" / "研发" / "工程质量.md").exists()
+    assert "[[主题/研发 工程质量|研发 工程质量]]" in exported_text
+    assert (vault / "主题" / "研发 工程质量.md").exists()
+    assert (vault / "主题" / "研发 SOP.md").exists()
+    assert (vault / "主题" / "AI工程 Agent.md").exists()
     metadata = json.loads((task / "metadata.json").read_text(encoding="utf-8"))
     assert metadata["obsidian_category"] == "研发/工程质量"
     assert metadata["obsidian_category_method"] == "rules"
+    assert "obsidian_related_categories" in metadata
 
 
 def test_export_summary_honors_optional_subdir(tmp_path):
@@ -73,11 +74,12 @@ def test_classify_category_prefers_agent_for_agent_content(tmp_path):
     summary = task / "summary.md"
     summary.write_text("# Coding Agent 实践\n\nAgent 自动规划和工具调用", encoding="utf-8")
 
-    category, method, reason = classify_category(task, summary)
+    category, method, reason, related = classify_category(task, summary)
 
     assert category == "AI工程/Agent"
     assert method == "rules"
     assert reason
+    assert isinstance(related, list)
 
 
 def test_classify_category_can_be_overridden(tmp_path, monkeypatch):
@@ -87,17 +89,18 @@ def test_classify_category_can_be_overridden(tmp_path, monkeypatch):
     summary.write_text("# Coding Agent 实践\n\nAgent 自动规划和工具调用", encoding="utf-8")
     monkeypatch.setenv("OBSIDIAN_CATEGORY", "harness")
 
-    category, method, reason = classify_category(task, summary)
+    category, method, reason, related = classify_category(task, summary)
 
     assert category == "AI工程/Harness"
     assert method == "env"
     assert "手动指定" in reason
+    assert isinstance(related, list)
 
 
 def test_parse_model_category_json():
-    parsed = parse_model_category('{"category":"AI工程/Harness","reason":"重点讨论评测基建"}')
+    parsed = parse_model_category('{"category":"AI工程/Harness","related_categories":["AI工程/Agent","研发/SOP"],"reason":"重点讨论评测基建"}')
 
-    assert parsed == ("AI工程/Harness", "重点讨论评测基建")
+    assert parsed == ("AI工程/Harness", "重点讨论评测基建", ["AI工程/Agent", "研发/SOP"])
 
 
 def test_normalize_legacy_category():

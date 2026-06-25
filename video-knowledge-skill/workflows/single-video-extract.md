@@ -23,7 +23,7 @@ python scripts/extract-video.py "<url-or-file>" --output outputs --transcribe --
 
 Use `--summary-style faithful` for archive-only summaries, or `--summary-style note` for a concise reusable note.
 
-By default, after `summary.md` is generated, the workflow auto-detects a local Obsidian vault and copies the note into a two-level category folder at the vault root, such as `研发/DevOps/` or `AI工程/Agent/`. Use `--no-obsidian` to disable this behavior.
+By default, after `summary.md` is generated, the workflow auto-detects a local Obsidian vault and copies the note into a two-level category folder at the vault root, such as `研发/DevOps/` or `AI工程/Agent/`. The note also links to topic notes under `主题/` so Obsidian graph view can connect primary and related categories. Use `--no-obsidian` to disable this behavior.
 
 ## Output
 
