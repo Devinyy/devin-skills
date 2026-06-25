@@ -1,6 +1,6 @@
 import json
 
-from scripts.obsidian_export import classify_category, detect_vault, export_summary, parse_model_category, safe_filename
+from scripts.obsidian_export import classify_category, detect_vault, export_summary, normalize_category, parse_model_category, safe_filename
 
 
 def test_detect_vault_uses_open_recent_vault(tmp_path, monkeypatch):
@@ -42,10 +42,10 @@ def test_export_summary_copies_to_vault_category(tmp_path):
 
     exported = export_summary(task, vault=vault)
 
-    assert exported == vault / "研发" / "标题：AI Coding.md"
+    assert exported == vault / "研发" / "工程质量" / "标题：AI Coding.md"
     assert exported.read_text(encoding="utf-8") == "# 标题：AI/Coding?\n\n代码质量和软件工程内容"
     metadata = json.loads((task / "metadata.json").read_text(encoding="utf-8"))
-    assert metadata["obsidian_category"] == "研发"
+    assert metadata["obsidian_category"] == "研发/工程质量"
     assert metadata["obsidian_category_method"] == "rules"
 
 
@@ -58,7 +58,7 @@ def test_export_summary_honors_optional_subdir(tmp_path):
 
     exported = export_summary(task, vault=vault, subdir="Inbox")
 
-    assert exported == vault / "Inbox" / "旅行" / "旅行攻略.md"
+    assert exported == vault / "Inbox" / "生活" / "旅行" / "旅行攻略.md"
 
 
 def test_classify_category_prefers_agent_for_agent_content(tmp_path):
@@ -69,7 +69,7 @@ def test_classify_category_prefers_agent_for_agent_content(tmp_path):
 
     category, method, reason = classify_category(task, summary)
 
-    assert category == "Agent"
+    assert category == "AI工程/Agent"
     assert method == "rules"
     assert reason
 
@@ -83,15 +83,20 @@ def test_classify_category_can_be_overridden(tmp_path, monkeypatch):
 
     category, method, reason = classify_category(task, summary)
 
-    assert category == "harness"
+    assert category == "AI工程/Harness"
     assert method == "env"
     assert "手动指定" in reason
 
 
 def test_parse_model_category_json():
-    parsed = parse_model_category('{"category":"harness","reason":"重点讨论评测基建"}')
+    parsed = parse_model_category('{"category":"AI工程/Harness","reason":"重点讨论评测基建"}')
 
-    assert parsed == ("harness", "重点讨论评测基建")
+    assert parsed == ("AI工程/Harness", "重点讨论评测基建")
+
+
+def test_normalize_legacy_category():
+    assert normalize_category("Agent") == "AI工程/Agent"
+    assert normalize_category("研发") == "研发/架构"
 
 
 def test_safe_filename_has_fallback():

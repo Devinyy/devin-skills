@@ -14,53 +14,74 @@ from openai import OpenAI
 
 
 DEFAULT_SUBDIR = ""
-CATEGORIES = [
-    "管理",
-    "研发",
-    "Agent",
-    "skill",
-    "harness",
-    "生活",
-    "杂谈",
-    "摄影",
-    "阅读",
-    "旅行",
-    "设计",
-]
+CATEGORY_TREE = {
+    "研发": ["前端", "DevOps", "工程质量", "架构", "SOP"],
+    "AI工程": ["Agent", "Skill", "Harness", "AI Coding"],
+    "管理": ["团队协作", "流程治理", "CodeReview"],
+    "设计": ["产品设计", "UIUX"],
+    "生活": ["阅读", "摄影", "旅行", "杂谈"],
+}
+CATEGORIES = [f"{domain}/{item}" for domain, items in CATEGORY_TREE.items() for item in items]
 
 CATEGORY_KEYWORDS = {
-    "管理": [
+    "管理/团队协作": [
         "管理", "团队", "组织", "协作", "领导", "绩效", "复盘", "code review", "codereview", "代码评审",
-        "流程", "沟通", "文化", "项目管理",
+        "沟通", "文化", "项目管理",
     ],
-    "研发": [
-        "研发", "开发", "工程", "编程", "代码", "架构", "devops", "ci/cd", "测试", "部署", "运维",
-        "软件工程", "技术债", "代码质量", "java", "python", "前端", "后端", "数据库",
+    "管理/流程治理": [
+        "流程", "治理", "规范", "制度", "审批", "SOP", "标准化", "项目管理",
     ],
-    "Agent": [
+    "管理/CodeReview": [
+        "code review", "codereview", "代码评审", "评审", "review", "代码审查",
+    ],
+    "研发/前端": [
+        "前端", "javascript", "typescript", "react", "vue", "ui", "组件", "浏览器", "css", "webpack",
+        "前端架构", "前端监控",
+    ],
+    "研发/DevOps": [
+        "devops", "ci/cd", "cicd", "持续集成", "持续交付", "部署", "运维", "gitlab", "jenkins",
+        "流水线",
+    ],
+    "研发/工程质量": [
+        "工程质量", "代码质量", "测试", "监控", "错误监控", "质量", "技术债", "告警", "日志",
+        "sourcemap", "性能",
+    ],
+    "研发/架构": [
+        "架构", "系统设计", "模块化", "monorepo", "微服务", "技术栈", "设计系统", "架构治理",
+    ],
+    "研发/SOP": [
+        "sop", "操作手册", "流程步骤", "规范流程", "执行清单", "标准作业",
+    ],
+    "AI工程/Agent": [
         "agent", "智能体", "multi-agent", "browser use", "工具调用", "自动规划", "自主执行",
-        "ai coding", "coding agent",
+        "coding agent",
     ],
-    "skill": [
-        "skill", "技能", "codex skill", "claude skill", "可复用技能", "工作流技能",
+    "AI工程/Skill": [
+        "skill", "技能", "codex skill", "claude skill", "可复用技能", "工作流技能", "skill.md",
     ],
-    "harness": [
+    "AI工程/Harness": [
         "harness", "评测", "benchmark", "基建", "上下文工程", "验证", "测试集", "自动验证",
         "可交付性", "脚手架",
     ],
-    "生活": [
-        "生活", "健康", "饮食", "睡眠", "家庭", "情绪", "心理", "习惯", "消费", "理财",
+    "AI工程/AI Coding": [
+        "ai coding", "vibe coding", "trae", "代码生成", "辅助编程", "编程助手",
     ],
-    "摄影": [
-        "摄影", "相机", "镜头", "构图", "光圈", "快门", "焦段", "照片", "拍摄", "后期",
-    ],
-    "阅读": [
+    "生活/阅读": [
         "阅读", "读书", "书单", "书评", "笔记", "作者", "文学", "小说", "非虚构",
     ],
-    "旅行": [
+    "生活/摄影": [
+        "摄影", "相机", "镜头", "构图", "光圈", "快门", "焦段", "照片", "拍摄", "后期",
+    ],
+    "生活/旅行": [
         "旅行", "旅游", "出行", "攻略", "城市", "酒店", "机票", "路线", "景点",
     ],
-    "设计": [
+    "生活/杂谈": [
+        "生活", "健康", "饮食", "睡眠", "家庭", "情绪", "心理", "习惯", "消费", "理财", "杂谈",
+    ],
+    "设计/产品设计": [
+        "产品设计", "产品", "原型", "需求", "用户体验", "交互", "流程图",
+    ],
+    "设计/UIUX": [
         "设计", "ui", "ux", "figma", "原型", "交互", "视觉", "组件", "体验", "产品设计",
     ],
 }
@@ -112,6 +133,29 @@ def safe_filename(value: str, fallback: str) -> str:
     if not name:
         name = fallback
     return name[:100].strip() or fallback
+
+
+def normalize_category(value: str) -> str | None:
+    raw = value.strip().replace("\\", "/")
+    aliases = {
+        "Agent": "AI工程/Agent",
+        "skill": "AI工程/Skill",
+        "Skill": "AI工程/Skill",
+        "harness": "AI工程/Harness",
+        "Harness": "AI工程/Harness",
+        "AI Coding": "AI工程/AI Coding",
+        "管理": "管理/团队协作",
+        "研发": "研发/架构",
+        "设计": "设计/产品设计",
+        "生活": "生活/杂谈",
+        "杂谈": "生活/杂谈",
+        "摄影": "生活/摄影",
+        "阅读": "生活/阅读",
+        "旅行": "生活/旅行",
+    }
+    if raw in CATEGORIES:
+        return raw
+    return aliases.get(raw)
 
 
 def title_from_summary(summary_path: Path) -> str | None:
@@ -187,10 +231,16 @@ def rule_classify_category(context: dict) -> tuple[str, str]:
                 scores[category] += count
 
     # Specific technical folders should win ties over broad catch-all folders.
-    priority = {category: index for index, category in enumerate(["Agent", "skill", "harness", "设计", "研发", "管理", "摄影", "阅读", "旅行", "生活", "杂谈"])}
+    priority = {category: index for index, category in enumerate([
+        "AI工程/Agent", "AI工程/Skill", "AI工程/Harness", "AI工程/AI Coding",
+        "研发/前端", "研发/DevOps", "研发/工程质量", "研发/架构", "研发/SOP",
+        "管理/CodeReview", "管理/流程治理", "管理/团队协作",
+        "设计/UIUX", "设计/产品设计",
+        "生活/摄影", "生活/阅读", "生活/旅行", "生活/杂谈",
+    ])}
     best = max(CATEGORIES, key=lambda category: (scores[category], -priority.get(category, 99)))
     if scores[best] <= 0:
-        return "杂谈", "规则分类未命中明确关键词，回退到杂谈。"
+        return "生活/杂谈", "规则分类未命中明确关键词，回退到生活/杂谈。"
     return best, f"规则分类命中 {best}，分数 {scores[best]}。"
 
 
@@ -203,14 +253,17 @@ def parse_model_category(raw: str) -> tuple[str, str] | None:
     except json.JSONDecodeError:
         payload = None
     if isinstance(payload, dict):
-        category = str(payload.get("category") or "").strip()
+        category = normalize_category(str(payload.get("category") or ""))
         reason = str(payload.get("reason") or "").strip()
-        if category in CATEGORIES:
+        if category:
             return category, reason or "模型未提供原因。"
 
     for category in CATEGORIES:
         if text == category or text.startswith(category):
             return category, text
+    normalized = normalize_category(text)
+    if normalized:
+        return normalized, text
     return None
 
 
@@ -221,24 +274,28 @@ def model_classify_category(context: dict) -> tuple[str, str] | None:
     if not os.getenv("OPENAI_API_KEY"):
         return None
 
-    categories = "、".join(CATEGORIES)
+    categories = "\n".join(f"- {domain}/{item}" for domain, items in CATEGORY_TREE.items() for item in items)
     prompt = (
-        "你是 Obsidian 知识库分类助手。请只从给定分类中选择一个最合适的分类。\n"
-        f"可选分类：{categories}\n\n"
+        "你是 Obsidian 知识库分类助手。请只从给定二级分类中选择一个最合适的路径。\n"
+        f"可选分类路径：\n{categories}\n\n"
         "分类含义：\n"
-        "- 管理：团队管理、组织协作、流程治理、绩效、CodeReview 文化等。\n"
-        "- 研发：软件工程、架构、开发、DevOps、CI/CD、监控、测试、工程实践等。\n"
-        "- Agent：AI Agent、Coding Agent、智能体、工具调用、自主执行等。\n"
-        "- skill：Codex/Claude/Agent 技能、可复用技能包、技能编写与安装等。\n"
-        "- harness：评测、验证基建、上下文工程、可交付性验证、测试集、benchmark 等。\n"
-        "- 生活：健康、消费、家庭、习惯、心理等日常生活。\n"
-        "- 杂谈：无法明确归类或泛泛观点。\n"
-        "- 摄影：拍摄、相机、镜头、修图、影像。\n"
-        "- 阅读：书、书评、读书笔记、文学。\n"
-        "- 旅行：路线、城市、酒店、出行攻略。\n"
-        "- 设计：产品设计、UI/UX、原型、交互、视觉、Figma。\n\n"
+        "- 研发/前端：前端架构、前端监控、浏览器、React/Vue/JS/TS、前端工程化。\n"
+        "- 研发/DevOps：DevOps、CI/CD、持续交付、部署、运维、流水线。\n"
+        "- 研发/工程质量：测试、监控、告警、代码质量、错误追踪、技术债。\n"
+        "- 研发/架构：系统设计、架构治理、模块化、技术栈、平台架构。\n"
+        "- 研发/SOP：标准流程、操作手册、执行步骤、规范化作业。\n"
+        "- AI工程/Agent：AI Agent、Coding Agent、智能体、工具调用、自主执行。\n"
+        "- AI工程/Skill：Codex/Claude/Agent skill、技能包、技能编写、可复用工作流。\n"
+        "- AI工程/Harness：评测、benchmark、验证基建、上下文工程、可交付性验证。\n"
+        "- AI工程/AI Coding：AI 辅助编程、AI Coding 实践、Vibe Coding、代码生成。\n"
+        "- 管理/团队协作：团队协作、组织沟通、领导、文化、复盘。\n"
+        "- 管理/流程治理：流程治理、制度、标准化、审批、项目管理。\n"
+        "- 管理/CodeReview：代码评审、代码审查、Review 机制与文化。\n"
+        "- 设计/产品设计：产品设计、需求、原型、用户体验、流程。\n"
+        "- 设计/UIUX：UI、UX、视觉、交互、Figma、组件体验。\n"
+        "- 生活/阅读、生活/摄影、生活/旅行、生活/杂谈：个人知识主题。\n\n"
         "如果内容同时涉及多个分类，请选择文章的主主题，而不是出现频率最高的词。\n"
-        "只输出 JSON，格式：{\"category\":\"分类名\",\"reason\":\"一句话说明依据\"}"
+        "只输出 JSON，格式：{\"category\":\"一级/二级\",\"reason\":\"一句话说明依据\"}"
     )
     content = {
         "title": context.get("title", ""),
@@ -302,9 +359,9 @@ def classify_with_http_fallback(api_key: str | None, base_url: str | None, model
 def classify_category(task_dir: Path, summary_path: Path) -> tuple[str, str, str]:
     override = os.getenv("OBSIDIAN_CATEGORY")
     if override:
-        override = override.strip()
-        if override in CATEGORIES:
-            return override, "env", "通过 OBSIDIAN_CATEGORY 手动指定。"
+        normalized = normalize_category(override)
+        if normalized:
+            return normalized, "env", "通过 OBSIDIAN_CATEGORY 手动指定。"
 
     context = category_context(task_dir, summary_path)
     try:
@@ -348,10 +405,12 @@ def export_summary(task_dir: Path, vault: Path | None = None, subdir: str | None
 
     target_subdir = subdir if subdir is not None else os.getenv("OBSIDIAN_OUTPUT_DIR", DEFAULT_SUBDIR)
     category, category_method, category_reason = classify_category(task_dir, summary_path)
+    category_parts = category.split("/", 1)
     category_root = target_vault / target_subdir if target_subdir else target_vault
-    for item in CATEGORIES:
-        (category_root / item).mkdir(parents=True, exist_ok=True)
-    target_dir = target_vault / target_subdir / category if target_subdir else target_vault / category
+    for domain, items in CATEGORY_TREE.items():
+        for item in items:
+            (category_root / domain / item).mkdir(parents=True, exist_ok=True)
+    target_dir = category_root / category_parts[0] / category_parts[1]
     target_dir.mkdir(parents=True, exist_ok=True)
 
     title = title_from_summary(summary_path) or metadata_title(task_dir) or task_dir.name

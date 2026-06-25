@@ -17,7 +17,7 @@ python scripts/batch-extract.py inputs.txt --output outputs --transcribe --summa
   --transcribe-backend mlx --model-size small --language zh --summary-style dual
 ```
 
-By default, each successful summarized item is copied into a detected local Obsidian vault under an automatically selected category folder at the vault root. Use `--no-obsidian` to keep outputs only under `outputs/`.
+By default, each successful summarized item is copied into a detected local Obsidian vault under an automatically selected two-level category folder at the vault root. Use `--no-obsidian` to keep outputs only under `outputs/`.
 
 Resume after interruption:
 
