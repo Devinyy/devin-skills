@@ -36,3 +36,12 @@ outputs/{task_id}/
 ```
 
 Article-only or preview-only links may produce `article.md` and `summary.md` without transcript files.
+
+## User Response
+
+When summarization succeeds, respond with:
+
+- `summary.md` absolute path.
+- The full contents of `summary.md`.
+
+Do not make the user ask a second time for the output.

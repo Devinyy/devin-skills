@@ -41,3 +41,5 @@ Structured Markdown knowledge document. The default `dual` style contains:
 - `B. 可收藏笔记`
 
 Use `--summary-style faithful` or `--summary-style note` to generate only one layer.
+
+When answering the user after a successful summarization, include the absolute `summary.md` path and paste the full Markdown content. The path alone is not enough unless the user explicitly asks for paths only.

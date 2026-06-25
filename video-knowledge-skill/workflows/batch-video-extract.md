@@ -37,3 +37,7 @@ python scripts/batch-extract.py inputs.txt --output outputs --resume --retry-fai
 - For restricted platforms, provide cookies or local files.
 - Use `scripts/list-outputs.py outputs` to inspect generated tasks.
 - Use `scripts/clean-empty-outputs.py outputs` to remove empty output directories.
+
+## User Response
+
+After the queue finishes, report the queue status and the absolute `summary.md` path for each successful item. If the user asks for the output content, read and return the full `summary.md` content for the requested item or items.

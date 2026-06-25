@@ -1,0 +1,9 @@
+{
+  "slug": "video-knowledge-skill",
+  "version": "0.1.0",
+  "source": "/Users/zhangxiang/devin-skills/video-knowledge-skill",
+  "installTargets": [
+    "/Users/zhangxiang/.codex/skills/video-knowledge-skill",
+    "/Users/zhangxiang/.cc-switch/skills/video-knowledge-skill"
+  ]
+}

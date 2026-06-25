@@ -1,3 +1,8 @@
+---
+name: video-knowledge-skill
+description: Use when extracting, transcribing, summarizing, or making reusable notes from Bilibili, Douyin, Xiaohongshu, WeChat article, WeChat Channels, local video, or local audio sources.
+---
+
 # Video Knowledge Skill
 
 ## Purpose
@@ -71,6 +76,17 @@ outputs/{task_id}/
 ├── summary.md
 └── assets/
 ```
+
+## Final Response Contract
+
+After a successful extraction with summarization, the agent must return:
+
+1. The absolute path to `outputs/{task_id}/summary.md`.
+2. The full Markdown content of `summary.md`.
+
+Do not only say that the summary was generated. If the user asks for "输出", "结果", "笔记", or similar wording, read `summary.md` from disk and paste its content in the response, with the path above it.
+
+For batch processing, return the queue status plus each successful task's `summary.md` absolute path. If the user asks for content, include the full `summary.md` content for each requested task.
 
 ## Core Commands
 
