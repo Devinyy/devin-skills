@@ -17,6 +17,8 @@ python scripts/batch-extract.py inputs.txt --output outputs --transcribe --summa
   --transcribe-backend mlx --model-size small --language zh --summary-style dual
 ```
 
+By default, each successful summarized item is copied into a detected local Obsidian vault under `Video Knowledge/`. Use `--no-obsidian` to keep outputs only under `outputs/`.
+
 Resume after interruption:
 
 ```bash
@@ -40,4 +42,4 @@ python scripts/batch-extract.py inputs.txt --output outputs --resume --retry-fai
 
 ## User Response
 
-After the queue finishes, report the queue status and the absolute `summary.md` path for each successful item. If the user asks for the output content, read and return the full `summary.md` content for the requested item or items.
+After the queue finishes, report the queue status, the absolute `summary.md` path, and any Obsidian note path for each successful item. If the user asks for the output content, read and return the full `summary.md` content for the requested item or items.

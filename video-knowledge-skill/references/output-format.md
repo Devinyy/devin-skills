@@ -43,3 +43,12 @@ Structured Markdown knowledge document. The default `dual` style contains:
 Use `--summary-style faithful` or `--summary-style note` to generate only one layer.
 
 When answering the user after a successful summarization, include the absolute `summary.md` path and paste the full Markdown content. The path alone is not enough unless the user explicitly asks for paths only.
+
+## Obsidian export
+
+When a local Obsidian installation is detected, `summary.md` is copied into the selected vault under `Video Knowledge/` by default. Detection order:
+
+1. `OBSIDIAN_VAULT_PATH`, if set and valid.
+2. The open or most recent vault in `~/Library/Application Support/obsidian/obsidian.json`.
+
+Use `OBSIDIAN_OUTPUT_DIR` to change the vault subdirectory, or `--no-obsidian` to disable export for a run. When export succeeds, `metadata.json` includes `obsidian_path`.

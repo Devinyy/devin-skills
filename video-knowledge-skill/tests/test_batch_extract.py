@@ -61,6 +61,29 @@ def test_batch_extract_passes_transcription_options_to_each_item(tmp_path, monke
         assert "note" in cmd
 
 
+def test_batch_extract_passes_no_obsidian_to_each_item(tmp_path, monkeypatch):
+    inputs = tmp_path / "inputs.txt"
+    inputs.write_text("https://example.test/one\n", encoding="utf-8")
+    output = tmp_path / "outputs"
+
+    calls, code = run_batch(
+        monkeypatch,
+        [
+            "batch-extract.py",
+            str(inputs),
+            "--output",
+            str(output),
+            "--summarize",
+            "--no-obsidian",
+        ],
+        [0],
+    )
+
+    assert code == 0
+    assert len(calls) == 1
+    assert "--no-obsidian" in calls[0]
+
+
 def test_batch_extract_records_queue_status_and_continues_after_failure(tmp_path, monkeypatch):
     inputs = tmp_path / "inputs.txt"
     inputs.write_text("https://example.test/ok\nhttps://example.test/fail\n", encoding="utf-8")

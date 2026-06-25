@@ -23,6 +23,8 @@ python scripts/extract-video.py "<url-or-file>" --output outputs --transcribe --
 
 Use `--summary-style faithful` for archive-only summaries, or `--summary-style note` for a concise reusable note.
 
+By default, after `summary.md` is generated, the workflow auto-detects a local Obsidian vault and copies the note into `Video Knowledge/`. Use `--no-obsidian` to disable this behavior.
+
 ## Output
 
 ```txt
@@ -42,6 +44,7 @@ Article-only or preview-only links may produce `article.md` and `summary.md` wit
 When summarization succeeds, respond with:
 
 - `summary.md` absolute path.
+- Obsidian note path, when a local Obsidian vault is detected.
 - The full contents of `summary.md`.
 
 Do not make the user ask a second time for the output.

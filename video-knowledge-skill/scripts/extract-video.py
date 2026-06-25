@@ -33,6 +33,7 @@ def main() -> None:
     parser.add_argument("--language", default="zh")
     parser.add_argument("--transcribe-backend", choices=["faster-whisper", "mlx"], default="faster-whisper")
     parser.add_argument("--summary-style", choices=["dual", "faithful", "note"], default="dual")
+    parser.add_argument("--no-obsidian", action="store_true", help="Do not auto-copy summary.md into a detected Obsidian vault.")
     args = parser.parse_args()
 
     output = Path(args.output)
@@ -68,6 +69,23 @@ def main() -> None:
             str(task_dir),
             "--summary-style", args.summary_style,
         ], check=True)
+        if not args.no_obsidian:
+            export = subprocess.run(
+                [
+                    sys.executable,
+                    str(Path(__file__).with_name("obsidian_export.py")),
+                    str(task_dir),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            obsidian_path = export.stdout.strip()
+            if obsidian_path:
+                metadata = result.to_dict()
+                metadata["obsidian_path"] = obsidian_path
+                (task_dir / "metadata.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
+                print(json.dumps({"obsidian_path": obsidian_path}, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

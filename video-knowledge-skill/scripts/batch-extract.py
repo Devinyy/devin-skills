@@ -83,6 +83,8 @@ def build_command(args: argparse.Namespace, source: str) -> list[str]:
         cmd.append("--transcribe")
     if args.summarize:
         cmd.append("--summarize")
+    if args.no_obsidian:
+        cmd.append("--no-obsidian")
     cmd.extend(["--model-size", args.model_size])
     cmd.extend(["--language", args.language])
     cmd.extend(["--transcribe-backend", args.transcribe_backend])
@@ -100,6 +102,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--language", default="zh")
     parser.add_argument("--transcribe-backend", choices=["faster-whisper", "mlx"], default="faster-whisper")
     parser.add_argument("--summary-style", choices=["dual", "faithful", "note"], default="dual")
+    parser.add_argument("--no-obsidian", action="store_true", help="Do not auto-copy summary.md into a detected Obsidian vault.")
     parser.add_argument("--queue-state", help="Path to queue state JSON. Defaults to <output>/batch-queue.json")
     parser.add_argument("--resume", action="store_true", help="Resume queue, skipping completed items")
     parser.add_argument("--retry-failed", action="store_true", help="With --resume, retry failed items")
