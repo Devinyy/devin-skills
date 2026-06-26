@@ -82,6 +82,23 @@ def test_classify_category_prefers_agent_for_agent_content(tmp_path):
     assert isinstance(related, list)
 
 
+def test_classify_category_prefers_cocktail_for_recipe_content(tmp_path):
+    task = tmp_path / "outputs" / "task123"
+    task.mkdir(parents=True)
+    summary = task / "summary.md"
+    summary.write_text(
+        "# 便利店调酒配方\n\n中国劲酒、低度白酒、果酒和微醺口感的调酒配方。",
+        encoding="utf-8",
+    )
+
+    category, method, reason, related = classify_category(task, summary)
+
+    assert category == "生活/调酒"
+    assert method == "rules"
+    assert reason
+    assert isinstance(related, list)
+
+
 def test_classify_category_can_be_overridden(tmp_path, monkeypatch):
     task = tmp_path / "outputs" / "task123"
     task.mkdir(parents=True)
