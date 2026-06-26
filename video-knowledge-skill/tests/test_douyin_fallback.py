@@ -35,3 +35,46 @@ def test_douyin_falls_back_to_browser_aweme_detail_when_yt_dlp_needs_cookies(tmp
     assert result.author == "狠人认知局"
     assert result.audio_path.endswith("assets/audio.wav")
     assert (tmp_path / result.task_id / "assets" / "source.mp4").read_bytes() == b"video-bytes"
+
+
+def test_douyin_finds_aweme_detail_recursively():
+    payload = {
+        "router": {
+            "loaderData": {
+                "video": {
+                    "aweme_detail": {
+                        "aweme_id": "123",
+                        "desc": "递归详情",
+                        "video": {"play_addr": {"url_list": ["https://example.test/a.mp4"]}},
+                    }
+                }
+            }
+        }
+    }
+
+    detail = Extractor()._find_aweme_detail(payload)
+
+    assert detail["aweme_id"] == "123"
+    assert detail["desc"] == "递归详情"
+
+
+def test_douyin_jina_reader_url_uses_original_source_prefix(monkeypatch):
+    seen = {}
+
+    def fake_get(url, **kwargs):
+        seen["url"] = url
+
+        class Response:
+            text = "Title: 抖音内容\n\n正文"
+
+            def raise_for_status(self):
+                return None
+
+        return Response()
+
+    monkeypatch.setattr("extractors.douyin.requests.get", fake_get)
+
+    markdown = Extractor()._fetch_jina_markdown("https://v.douyin.com/example/")
+
+    assert markdown.startswith("Title:")
+    assert seen["url"] == "https://r.jina.ai/https://v.douyin.com/example/"

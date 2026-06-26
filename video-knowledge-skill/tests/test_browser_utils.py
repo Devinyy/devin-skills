@@ -1,6 +1,6 @@
 from http.cookiejar import Cookie, MozillaCookieJar
 
-from extractors.browser_utils import load_playwright_cookies
+from extractors.browser_utils import MAX_PLAYWRIGHT_EXPIRES, load_playwright_cookies
 
 
 def make_cookie(name, value, domain=".douyin.com"):
@@ -36,3 +36,20 @@ def test_load_playwright_cookies_filters_domains_and_invalid_values(tmp_path):
 
     assert [cookie["name"] for cookie in cookies] == ["sessionid"]
     assert cookies[0]["domain"] == "douyin.com"
+
+
+def test_load_playwright_cookies_clamps_large_expires(tmp_path):
+    cookie_file = tmp_path / "cookies.txt"
+    cookie_file.write_text(
+        "\n".join(
+            [
+                "# Netscape HTTP Cookie File",
+                ".douyin.com\tTRUE\t/\tTRUE\t13432212066256452\tsid_guard\tabc",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    cookies = load_playwright_cookies(str(cookie_file), ["douyin.com"])
+
+    assert cookies[0]["expires"] == MAX_PLAYWRIGHT_EXPIRES

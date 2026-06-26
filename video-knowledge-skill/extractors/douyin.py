@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 
 import requests
@@ -119,13 +120,24 @@ class Extractor(YtDlpExtractor):
         details: list[dict] = []
 
         def on_response(resp):
-            if "aweme/v1/web/aweme/detail" not in resp.url:
+            if not self._looks_like_douyin_aweme_response(resp.url):
                 return
             try:
                 payload = json.loads(resp.text())
             except Exception:
                 return
-            detail = payload.get("aweme_detail")
+            detail = self._find_aweme_detail(payload)
+            if detail:
+                details.append(detail)
+
+        def on_page(page):
+            if details:
+                return
+            try:
+                html = page.content()
+            except Exception:
+                return
+            detail = self._find_aweme_detail_in_html(html)
             if detail:
                 details.append(detail)
 
@@ -134,12 +146,64 @@ class Extractor(YtDlpExtractor):
             user_agent=HEADERS["User-Agent"],
             cookies=cookies,
             on_response=on_response,
+            on_page=on_page,
             done=lambda: bool(details),
+            poll_count=60,
         )
 
         if not details:
             raise RuntimeError("Douyin browser fallback could not capture aweme detail JSON")
         return details[0]
+
+    def _looks_like_douyin_aweme_response(self, url: str) -> bool:
+        lowered = url.lower()
+        return (
+            "douyin.com" in lowered
+            and "aweme" in lowered
+            and any(marker in lowered for marker in ["detail", "post", "iteminfo", "feed"])
+        )
+
+    def _find_aweme_detail(self, payload) -> dict | None:
+        if isinstance(payload, dict):
+            detail = payload.get("aweme_detail")
+            if isinstance(detail, dict):
+                return detail
+            aweme_list = payload.get("aweme_list")
+            if isinstance(aweme_list, list):
+                for item in aweme_list:
+                    if isinstance(item, dict) and (item.get("aweme_id") or item.get("video")):
+                        return item
+            if payload.get("aweme_id") and payload.get("video"):
+                return payload
+            for value in payload.values():
+                detail = self._find_aweme_detail(value)
+                if detail:
+                    return detail
+        elif isinstance(payload, list):
+            for item in payload:
+                detail = self._find_aweme_detail(item)
+                if detail:
+                    return detail
+        return None
+
+    def _find_aweme_detail_in_html(self, html: str) -> dict | None:
+        for pattern in [
+            r'<script id="RENDER_DATA" type="application/json">(.*?)</script>',
+            r'<script id="SSR_RENDER_DATA" type="application/json">(.*?)</script>',
+        ]:
+            match = re.search(pattern, html, flags=re.S)
+            if not match:
+                continue
+            raw = match.group(1)
+            for candidate in [raw, requests.utils.unquote(raw)]:
+                try:
+                    payload = json.loads(candidate)
+                except Exception:
+                    continue
+                detail = self._find_aweme_detail(payload)
+                if detail:
+                    return detail
+        return None
 
     def _extract_with_jina_fallback(self, source: str, output_dir: Path) -> ExtractResult:
         markdown = self._fetch_jina_markdown(source)
@@ -171,7 +235,7 @@ class Extractor(YtDlpExtractor):
         )
 
     def _fetch_jina_markdown(self, source: str) -> str:
-        reader_url = f"https://r.jina.ai/http://{source}"
+        reader_url = f"https://r.jina.ai/{source}"
         resp = requests.get(reader_url, headers=HEADERS, timeout=60)
         resp.raise_for_status()
         text = resp.text.strip()
