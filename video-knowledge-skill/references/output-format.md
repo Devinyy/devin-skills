@@ -4,18 +4,7 @@
 
 Contains source, platform, title, author, URL, local asset path, and extractor metadata.
 
-Preview-only sources, such as some WeChat Channels web previews, include status fields:
-
-```json
-{
-  "metadata": {
-    "content_type": "preview",
-    "availability": "preview_only",
-    "media_status": "not_available",
-    "media_reason": "..."
-  }
-}
-```
+Sources that expose only metadata or preview text must fail before summary generation. For example, WeChat Channels preview pages without playable media are rejected instead of producing placeholder notes.
 
 ## transcript.json
 

@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.detect_platform import detect  # type: ignore
+from extractors.base import InsufficientContentError
 from extractors.local_file import LocalFileExtractor
 
 
@@ -41,7 +42,11 @@ def main() -> None:
 
     detected = detect(args.input)
     extractor = get_extractor(detected["platform"])
-    result = extractor.extract(detected["input"], output)
+    try:
+        result = extractor.extract(detected["input"], output)
+    except InsufficientContentError as exc:
+        print(f"Insufficient content: {exc}", file=sys.stderr)
+        raise SystemExit(2) from None
 
     task_dir = output / result.task_id
     task_dir.mkdir(parents=True, exist_ok=True)

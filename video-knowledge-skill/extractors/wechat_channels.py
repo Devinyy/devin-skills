@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from pathlib import Path
 
 import requests
 from yt_dlp.utils import DownloadError
 
 from .browser_utils import capture_browser_page
-from .base import ExtractResult
+from .base import ExtractResult, InsufficientContentError
 from .yt_dlp_extractor import YtDlpExtractor, _task_id
 from scripts.extract_audio import normalize_audio
 
@@ -37,6 +38,9 @@ class Extractor(YtDlpExtractor):
         except DownloadError as exc:
             try:
                 return self._extract_with_browser_fallback(source, output_dir)
+            except InsufficientContentError:
+                shutil.rmtree(output_dir / _task_id(source), ignore_errors=True)
+                raise
             except Exception as fallback_exc:
                 raise exc from fallback_exc
 
@@ -47,38 +51,16 @@ class Extractor(YtDlpExtractor):
         feed = data.get("feedInfo") or {}
         title = feed.get("description") or "微信视频号"
 
+        if not media_url:
+            raise InsufficientContentError(
+                "WeChat Channels preview exposed only title/metadata and no playable media; "
+                "refusing to generate a placeholder note."
+            )
+
         task_id = _task_id(source)
         task_dir = output_dir / task_id
         asset_dir = task_dir / "assets"
         task_dir.mkdir(parents=True, exist_ok=True)
-
-        if not media_url:
-            (task_dir / "article.md").write_text(
-                render_preview_markdown(title=title, author=author.get("nickname"), source=source),
-                encoding="utf-8",
-            )
-            return ExtractResult(
-                platform=self.platform,
-                source=source,
-                task_id=task_id,
-                title=title,
-                author=author.get("nickname"),
-                webpage_url=source,
-                audio_path=None,
-                video_path=None,
-                metadata={
-                    "content_type": "preview",
-                    "availability": "preview_only",
-                    "media_status": "not_available",
-                    "media_reason": "该视频号 Web 预览页未公开可下载视频流，仅提取到预览文案和元数据。",
-                    "title": title,
-                    "description": feed.get("description"),
-                    "uploader": author.get("nickname"),
-                    "create_time": feed.get("createtime"),
-                    "webpage_url": source,
-                    "extractor": "wechat_channels_browser_fallback",
-                },
-            )
 
         asset_dir.mkdir(parents=True, exist_ok=True)
         source_media = asset_dir / "source.mp4"
@@ -139,17 +121,3 @@ class Extractor(YtDlpExtractor):
         if not media_urls:
             return payloads[0], None
         return payloads[0], media_urls[0]
-
-
-def render_preview_markdown(title: str, author: str | None, source: str) -> str:
-    lines = [
-        f"# {title}",
-        "",
-        f"来源：{source}",
-        "",
-    ]
-    if author:
-        lines.extend([f"作者：{author}", ""])
-    lines.extend(["## 正文", "", title, ""])
-    lines.extend(["## 备注", "", "该视频号 Web 预览页未公开可下载视频流，仅提取到预览文案和元数据。", ""])
-    return "\n".join(lines)

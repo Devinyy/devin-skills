@@ -11,7 +11,7 @@ Last verified locally: 2026-06-24.
 | Douyin | Verified with cookies + Playwright fallback | media, audio, transcript, summary |
 | Xiaohongshu | Verified | media, audio, transcript, note text, summary |
 | WeChat article | Verified | article text, summary |
-| WeChat Channels / 视频号 | Verified preview mode | preview text, metadata, summary |
+| WeChat Channels / 视频号 | Verified preview rejection | media if exposed; preview-only fails without notes |
 
 ## Current Capabilities
 
@@ -24,12 +24,12 @@ Last verified locally: 2026-06-24.
   - `faithful`
   - `note`
 - Runs batch jobs as a resumable sequential queue.
-- Uses Playwright fallback for Douyin and WeChat Channels preview pages.
+- Uses Playwright fallback for Douyin and WeChat Channels media capture.
 - Lists and cleans output directories.
 
 ## Known Limits
 
-- WeChat Channels web previews often do not expose playable video streams.
+- WeChat Channels web previews often do not expose playable video streams; preview-only pages are rejected to avoid polluting the knowledge base.
 - Douyin may require freshly exported cookies after captcha verification.
 - WeChat article embedded video download remains best-effort; article text extraction is the stable path.
 - Cloud deployment is not yet implemented.
@@ -53,4 +53,3 @@ Do not package runtime artifacts:
 - `__pycache__/`
 - `tmp/`
 - cookie files
-

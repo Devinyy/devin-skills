@@ -33,7 +33,7 @@ Different platforms have different anti-crawling and login restrictions. This sk
 | Douyin | yt-dlp first, Playwright browser fallback, optional cookies | Medium |
 | Xiaohongshu | yt-dlp first, note text capture, optional cookies | Medium |
 | WeChat article | article parser first, embedded media best-effort | Medium |
-| WeChat Channels | web preview parser, media best-effort, local upload fallback | Medium-Low |
+| WeChat Channels | media best-effort, local upload fallback; reject preview-only pages | Low |
 | Generic article | HTML article parser, best-effort main text extraction | Medium |
 | Local file | ffmpeg + faster-whisper | High |
 
@@ -142,4 +142,4 @@ python scripts/clean-empty-outputs.py outputs
 - Do not bypass paywalls or private-access restrictions.
 - Do not extract content from private accounts without authorization.
 - Prefer official APIs or user-provided exported files when platform restrictions exist.
-- For WeChat Channels, direct video download is best-effort; preview text and metadata extraction should still produce article-style notes.
+- For WeChat Channels, direct video download is best-effort. If only preview text/metadata is available and no playable media, transcript, or substantive body can be extracted, fail with a clear error instead of generating a placeholder note.

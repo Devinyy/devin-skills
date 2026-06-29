@@ -1,7 +1,9 @@
 from unittest.mock import Mock, patch
 
+import pytest
 from yt_dlp.utils import DownloadError
 
+from extractors.base import InsufficientContentError
 from extractors.wechat_channels import Extractor
 from extractors.yt_dlp_extractor import YtDlpExtractor
 
@@ -39,7 +41,7 @@ def test_wechat_channels_falls_back_to_browser_feed_info(tmp_path):
     assert (tmp_path / result.task_id / "assets" / "source.mp4").read_bytes() == b"video-bytes"
 
 
-def test_wechat_channels_writes_preview_article_when_video_url_is_unavailable(tmp_path):
+def test_wechat_channels_rejects_preview_only_content(tmp_path):
     feed = {
         "data": {
             "authorInfo": {"nickname": "脱口秀和Ta的朋友们"},
@@ -58,13 +60,8 @@ def test_wechat_channels_writes_preview_article_when_video_url_is_unavailable(tm
             return_value=(feed, None),
         ),
     ):
-        result = Extractor().extract("https://weixin.qq.com/sph/ATuxyDQm1V", tmp_path)
+        with pytest.raises(InsufficientContentError, match="placeholder note"):
+            Extractor().extract("https://weixin.qq.com/sph/ATuxyDQm1V", tmp_path)
 
-    assert result.audio_path is None
-    assert result.metadata["content_type"] == "preview"
-    assert result.metadata["availability"] == "preview_only"
-    assert result.metadata["media_status"] == "not_available"
-    assert "未公开" in result.metadata["media_reason"]
-    article = tmp_path / result.task_id / "article.md"
-    assert article.exists()
-    assert "要知道选择讲脱口秀对一个山东人很难。" in article.read_text(encoding="utf-8")
+    assert not list(tmp_path.rglob("article.md"))
+    assert not list(tmp_path.iterdir())

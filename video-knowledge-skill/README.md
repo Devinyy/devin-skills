@@ -97,4 +97,4 @@ Remove empty output directories:
 - Douyin supports yt-dlp first and Playwright browser fallback; fresh cookies may still be required.
 - Xiaohongshu extracts both video/audio and note text when available.
 - WeChat article links can be summarized as articles even when no embedded video is available.
-- WeChat Channels web preview links can be summarized from preview text and metadata; direct video download is best-effort only.
+- WeChat Channels direct video download is best-effort only. Preview-only pages are rejected instead of summarized, because title/metadata-only notes pollute the knowledge base.

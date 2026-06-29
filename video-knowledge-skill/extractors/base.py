@@ -5,6 +5,10 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 
+class InsufficientContentError(RuntimeError):
+    """Raised when a source only exposes metadata or preview text, not usable content."""
+
+
 @dataclass
 class ExtractResult:
     platform: str
