@@ -2,6 +2,8 @@
 
 A self-hosted skill for extracting knowledge from mainstream video links and local video/audio files.
 
+Chinese skill document: `SKILL.zh.md`.
+
 ## Scope
 
 Supported targets:

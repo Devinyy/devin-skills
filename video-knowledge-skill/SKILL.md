@@ -1,6 +1,6 @@
 ---
 name: video-knowledge-skill
-description: Use when extracting, transcribing, summarizing, or making reusable notes from Bilibili, Douyin, Xiaohongshu, WeChat article, WeChat Channels, public web articles, local video, or local audio sources.
+description: Use when a user provides Bilibili, Douyin, Xiaohongshu, WeChat article/Channels, public web article URLs, or local video/audio files and asks to read, summarize, extract transcript/subtitles, 转笔记, 知识库沉淀, export to Markdown/Feishu/Obsidian, or batch process sources.
 ---
 
 # Video Knowledge Skill
@@ -41,11 +41,13 @@ Different platforms have different anti-crawling and login restrictions. This sk
 
 Use this skill when the user asks to:
 
+- read, summarize, or make notes from a public web article URL
 - summarize a video
 - extract subtitles/transcript from a video
 - convert a video into notes
 - extract key points from Bilibili/Douyin/Xiaohongshu/WeChat video links
-- summarize public web articles such as cnblogs.com posts
+- summarize public web articles such as SegmentFault, cnblogs.com, Zhihu column, or official blog posts
+- turn articles, videos, or audio into reusable Markdown / Obsidian / Feishu notes
 - batch process video links
 - save video knowledge into Feishu/Lark
 

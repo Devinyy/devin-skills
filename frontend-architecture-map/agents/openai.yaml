@@ -1,0 +1,7 @@
+interface:
+  display_name: "Frontend Architecture Map"
+  short_description: "按分层能力地图风格绘制前端/业务架构图"
+  default_prompt: "Use $frontend-architecture-map to draw this architecture as a layered capability map with legend, domains, layers, and status colors."
+
+policy:
+  allow_implicit_invocation: true

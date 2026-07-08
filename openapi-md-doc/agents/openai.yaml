@@ -1,0 +1,7 @@
+interface:
+  display_name: "OpenAPI Markdown Doc"
+  short_description: "把 OpenAPI/Swagger 转成字段级 Markdown 接口文档"
+  default_prompt: "Use $openapi-md-doc to convert this OpenAPI or Swagger api-docs URL into a field-level Markdown API document."
+
+policy:
+  allow_implicit_invocation: true
