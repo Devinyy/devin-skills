@@ -1,0 +1,7 @@
+interface:
+  display_name: "PRD 前端功能拆解"
+  short_description: "根据 PRD 梳理端、页面、模块、字段、功能和逻辑"
+  default_prompt: "Use $prd-frontend-functional-breakdown to turn this PRD into a frontend functional breakdown organized by client, page, module, field, function, and business logic."
+
+policy:
+  allow_implicit_invocation: true

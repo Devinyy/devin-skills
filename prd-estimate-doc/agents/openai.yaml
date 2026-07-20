@@ -1,7 +1,0 @@
-interface:
-  display_name: "PRD Estimate Doc"
-  short_description: "根据 PRD 产出摘要、拆解、方案与估时"
-  default_prompt: "Use $prd-estimate-doc to turn this PRD into a summary, frontend task breakdown, technical design, estimate document, and optional Feishu Base schedule updates."
-
-policy:
-  allow_implicit_invocation: true

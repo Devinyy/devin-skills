@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0 - 2026-07-20
+
+### Changed
+
+- 将技能收敛为仅处理 PRD → 前端功能拆解
+- 将技能重命名为 `prd-frontend-functional-breakdown`
+- 固定拆解层级为：端 → 页面 → 模块 → 字段 → 功能 → 逻辑
+- 将技术方案、估时与飞书 Base 回填能力移入 `deferred-delivery-workflow/` 暂存，待后续拆分
+
 ## 1.1.0 - 2026-04-23
 
 ### Added
