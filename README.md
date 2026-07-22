@@ -2,31 +2,96 @@
 
 这个仓库用于存放可复用的 Devin / Codex skill，目前已收录：
 
-- `prd-estimate-doc`
+- `figma-fidelity-check`
+- `figma-tech-design-to-code`
+- `frontend-architecture-map`
+- `humanizer-zh`
+- `openapi-md-doc`
+- `prd-figma-info`
+- `prd-frontend-functional-breakdown`
+- `prd-frontend-tech-design`
+- `qiniu-icon-upload`
 - `smoke-test-executor`
+- `video-knowledge-skill`
 
 ## 当前包含的 skill
 
-### `prd-estimate-doc`
+### `figma-fidelity-check`
 
-用于把一份 PRD 快速转换成研发侧可执行产物，默认覆盖：
-
-- PRD 结构化摘要
-- 前端任务拆解
-- 前端技术方案
-- 估时文档
-- 可选的飞书 Base 排期同步
-
-适用场景：
-
-- 需求评审前，需要快速形成前端评估
-- 需要区分真人开发口径和 AI 协同开发口径
-- 需要把任务拆到叶子粒度并落到飞书 Base
+用于通过截图对比验证 UI 实现对 Figma 设计稿的还原度，覆盖 PC/H5 和微信小程序原生截图场景。
 
 详情见：
 
-- [prd-estimate-doc/README.md](prd-estimate-doc/README.md)
-- [prd-estimate-doc/SKILL.md](prd-estimate-doc/SKILL.md)
+- [figma-fidelity-check/SKILL.md](figma-fidelity-check/SKILL.md)
+
+### `figma-tech-design-to-code`
+
+用于根据带 `node-id` 的 Figma 链接、前端技术方案和目标仓库实现可验证的前端代码，并完成还原度校验。
+
+详情见：
+
+- [figma-tech-design-to-code/SKILL.md](figma-tech-design-to-code/SKILL.md)
+
+### `frontend-architecture-map`
+
+用于绘制分层能力地图风格的前端、业务、平台或系统架构图，适合表达宿主、业务、组件、基础能力、中台能力、运维能力等关系。
+
+详情见：
+
+- [frontend-architecture-map/README.md](frontend-architecture-map/README.md)
+- [frontend-architecture-map/SKILL.md](frontend-architecture-map/SKILL.md)
+
+### `humanizer-zh`
+
+用于编辑或审阅中文文本，去除常见 AI 写作痕迹，让内容更自然、更像真人书写。
+
+详情见：
+
+- [humanizer-zh/README.md](humanizer-zh/README.md)
+- [humanizer-zh/SKILL.md](humanizer-zh/SKILL.md)
+
+### `openapi-md-doc`
+
+用于把 OpenAPI / Swagger 的 `api-docs` URL 或 JSON 文件转换成字段级 Markdown 接口文档，方便前端集成。
+
+详情见：
+
+- [openapi-md-doc/README.md](openapi-md-doc/README.md)
+- [openapi-md-doc/SKILL.md](openapi-md-doc/SKILL.md)
+
+### `prd-figma-info`
+
+用于从 Figma 设计稿采集可供前端实现、评审和技术方案引用的页面、组件、样式、交互、资源和覆盖范围信息。
+
+详情见：
+
+- [prd-figma-info/SKILL.md](prd-figma-info/SKILL.md)
+
+### `prd-frontend-functional-breakdown`
+
+用于把 PRD 或飞书文档转换成前端功能拆解文档，在技术方案、估时或实现前先确认需求边界。
+
+详情见：
+
+- [prd-frontend-functional-breakdown/README.md](prd-frontend-functional-breakdown/README.md)
+- [prd-frontend-functional-breakdown/SKILL.md](prd-frontend-functional-breakdown/SKILL.md)
+
+### `prd-frontend-tech-design`
+
+用于根据 PRD、前端功能拆解、Figma 信息和现有代码仓库，编写可评审、可执行的前端技术方案。
+
+详情见：
+
+- [prd-frontend-tech-design/SKILL.md](prd-frontend-tech-design/SKILL.md)
+
+### `qiniu-icon-upload`
+
+用于把本地图标切图上传到七牛云 CDN，并将代码中的本地 `/static/icon` 路径替换为 CDN URL。
+
+详情见：
+
+- [qiniu-icon-upload/README.md](qiniu-icon-upload/README.md)
+- [qiniu-icon-upload/SKILL.md](qiniu-icon-upload/SKILL.md)
 
 ### `smoke-test-executor`
 
@@ -50,27 +115,81 @@
 - [smoke-test-executor/README.md](smoke-test-executor/README.md)
 - [smoke-test-executor/SKILL.md](smoke-test-executor/SKILL.md)
 
+### `video-knowledge-skill`
+
+用于从 Bilibili、抖音、小红书、微信公众号/视频号、公开网页文章、本地视频或音频中提取字幕、总结、转笔记，并导出到 Markdown / 飞书 / Obsidian。
+
+详情见：
+
+- [video-knowledge-skill/README.md](video-knowledge-skill/README.md)
+- [video-knowledge-skill/SKILL.md](video-knowledge-skill/SKILL.md)
+- [video-knowledge-skill/SKILL.zh.md](video-knowledge-skill/SKILL.zh.md)
+
 ## 仓库结构
 
 ```text
 devin-skills/
-├── LICENSE
-├── README.md
-├── prd-estimate-doc/
-│   ├── CHANGELOG.md
+├── figma-fidelity-check/
+│   ├── SKILL.md
+│   └── report-template.md
+├── figma-tech-design-to-code/
+│   ├── SKILL.md
+│   └── agents/
+├── frontend-architecture-map/
 │   ├── README.md
-│   ├── RELEASE-NOTES.md
+│   ├── SKILL.md
+│   ├── agents/
+│   ├── references/
+│   └── templates/
+├── humanizer-zh/
+│   ├── README.md
+│   └── SKILL.md
+├── LICENSE
+├── openapi-md-doc/
+│   ├── README.md
 │   ├── SKILL.md
 │   ├── agents/
 │   ├── references/
 │   ├── scripts/
 │   └── templates/
-└── smoke-test-executor/
+├── README.md
+├── prd-figma-info/
+│   ├── SKILL.md
+│   ├── agents/
+│   └── references/
+├── prd-frontend-functional-breakdown/
+│   ├── CHANGELOG.md
+│   ├── README.md
+│   ├── RELEASE-NOTES.md
+│   ├── SKILL.md
+│   ├── agents/
+│   ├── deferred-delivery-workflow/
+│   └── references/
+├── prd-frontend-tech-design/
+│   ├── SKILL.md
+│   ├── agents/
+│   └── references/
+├── qiniu-icon-upload/
+│   ├── README.md
+│   ├── README.zh-CN.md
+│   ├── SKILL.md
+│   ├── references/
+│   └── scripts/
+├── smoke-test-executor/
+│   ├── README.md
+│   ├── SKILL.md
+│   ├── agents/
+│   ├── references/
+│   └── scripts/
+└── video-knowledge-skill/
     ├── README.md
     ├── SKILL.md
-    ├── agents/
+    ├── SKILL.zh.md
+    ├── extractors/
     ├── references/
-    └── scripts/
+    ├── scripts/
+    ├── tests/
+    └── workflows/
 ```
 
 ## 安装
@@ -101,18 +220,25 @@ devin-skills/
 
 典型触发方式：
 
-- “用 `prd-estimate-doc` 根据这个 PRD 出估时文档”
-- “按 `prd-estimate-doc` 把这份 PRD 同步成 Base 估时表”
-- “按 `prd-estimate-doc` 给我一版 AI 协同开发口径估时”
+- “用 `figma-fidelity-check` 对比这个页面和 Figma 的还原度”
+- “用 `figma-tech-design-to-code` 按技术方案还原这个 Figma 页面”
+- “用 `frontend-architecture-map` 画一张前端业务架构图”
+- “用 `humanizer-zh` 把这段文案改得不像 AI 写的”
+- “用 `openapi-md-doc` 把这个 `/v3/api-docs` 转成 Markdown 接口文档”
+- “用 `prd-figma-info` 梳理这个 Figma 设计稿的页面、组件和交互信息”
+- “用 `prd-frontend-functional-breakdown` 先把这份 PRD 拆成前端功能清单”
+- “用 `prd-frontend-tech-design` 根据 PRD、功能拆解和 Figma 信息写前端技术方案”
+- “用 `qiniu-icon-upload` 上传这些切图到七牛云并替换代码链接”
 - “用 `smoke-test-executor` 跑这份 Excel 里的 P0 冒烟用例”
 - “按 `smoke-test-executor` 设计这份 PRD 的冒烟测试清单”
 - “用 `smoke-test-executor` 验证新增流程，UI 操作为主，接口校验落库”
+- “用 `video-knowledge-skill` 总结这个视频并转成 Obsidian 笔记”
 
 ## 发布说明
 
 对外分发可直接参考：
 
-- [prd-estimate-doc/RELEASE-NOTES.md](prd-estimate-doc/RELEASE-NOTES.md)
-- [prd-estimate-doc/CHANGELOG.md](prd-estimate-doc/CHANGELOG.md)
+- [prd-frontend-functional-breakdown/RELEASE-NOTES.md](prd-frontend-functional-breakdown/RELEASE-NOTES.md)
+- [prd-frontend-functional-breakdown/CHANGELOG.md](prd-frontend-functional-breakdown/CHANGELOG.md)
 
-`smoke-test-executor` 当前以 README、SKILL 说明和脚本为准，分发前确认不包含真实账号、token、环境配置或业务数据。
+其他 skill 当前以 README、SKILL 说明和脚本为准，分发前确认不包含真实账号、token、环境配置或业务数据。

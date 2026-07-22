@@ -1,5 +1,6 @@
 ---
 name: video-knowledge-skill
+version: 1.0.0
 description: Use when a user provides Bilibili, Douyin, Xiaohongshu, WeChat article/Channels, public web article URLs, or local video/audio files and asks to read, summarize, extract transcript/subtitles, 转笔记, 知识库沉淀, export to Markdown/Feishu/Obsidian, or batch process sources.
 ---
 

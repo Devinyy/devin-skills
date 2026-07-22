@@ -1,5 +1,6 @@
 ---
 name: smoke-test-executor
+version: 1.0.0
 description: Use when executing or designing smoke tests from a checklist, Excel workbook, PRD, test case table, or manual example; supports UI click-chain verification, API-assisted setup/verification, real-login environment checks, failure triage, and concise Chinese test reports.
 ---
 
