@@ -1,0 +1,4 @@
+interface:
+  display_name: "Figma Tech Design to Code"
+  short_description: "按技术方案将 Figma 设计实现为可验证的项目代码"
+  default_prompt: "Use $figma-tech-design-to-code to implement this Figma node in the target project using the frontend technical design."

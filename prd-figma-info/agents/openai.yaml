@@ -1,0 +1,4 @@
+interface:
+  display_name: "PRD Figma Info"
+  short_description: "从 Figma 采集可直接用于前端开发与方案设计的可追溯元数据"
+  default_prompt: "Use $prd-figma-info to collect implementation-ready metadata from this Figma design and write <需求名>-figma-info.md."

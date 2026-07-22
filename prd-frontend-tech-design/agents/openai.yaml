@@ -1,0 +1,4 @@
+interface:
+  display_name: "PRD Frontend Tech Design"
+  short_description: "从 PRD、拆解与设计稿生成可评审的前端技术方案文档"
+  default_prompt: "Use $prd-frontend-tech-design to write a frontend technical design from this PRD, task breakdown, and Figma information."
