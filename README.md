@@ -5,6 +5,7 @@
 - `figma-fidelity-check`
 - `figma-tech-design-to-code`
 - `frontend-architecture-map`
+- `frontend-estimation`
 - `humanizer-zh`
 - `openapi-md-doc`
 - `prd-figma-info`
@@ -40,6 +41,14 @@
 
 - [frontend-architecture-map/README.md](frontend-architecture-map/README.md)
 - [frontend-architecture-map/SKILL.md](frontend-architecture-map/SKILL.md)
+
+### `frontend-estimation`
+
+用于按端、页面、模块将前端需求拆成可开发任务并生成估时表，支持基于 PRD、技术方案、功能拆解或仓库现状创建/更新飞书 Base。
+
+详情见：
+
+- [frontend-estimation/SKILL.md](frontend-estimation/SKILL.md)
 
 ### `humanizer-zh`
 
@@ -141,6 +150,9 @@ devin-skills/
 │   ├── agents/
 │   ├── references/
 │   └── templates/
+├── frontend-estimation/
+│   ├── SKILL.md
+│   └── agents/
 ├── humanizer-zh/
 │   ├── README.md
 │   └── SKILL.md
@@ -223,6 +235,7 @@ devin-skills/
 - “用 `figma-fidelity-check` 对比这个页面和 Figma 的还原度”
 - “用 `figma-tech-design-to-code` 按技术方案还原这个 Figma 页面”
 - “用 `frontend-architecture-map` 画一张前端业务架构图”
+- “用 `frontend-estimation` 按端、页面、模块拆任务并生成估时表”
 - “用 `humanizer-zh` 把这段文案改得不像 AI 写的”
 - “用 `openapi-md-doc` 把这个 `/v3/api-docs` 转成 Markdown 接口文档”
 - “用 `prd-figma-info` 梳理这个 Figma 设计稿的页面、组件和交互信息”

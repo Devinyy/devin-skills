@@ -1,0 +1,4 @@
+interface:
+  display_name: "前端估时"
+  short_description: "按端、页面、模块拆分任务并生成估时表"
+  default_prompt: "使用 $frontend-estimation 按端、页面、模块拆解当前需求并生成估时表。"
